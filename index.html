@@ -577,6 +577,20 @@ const EXCHANGE_ADDRESSES = [
   ['Azbit', 'N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh']
 ];
 
+function loadExchangePseudoWallet() {
+  const addresses = EXCHANGE_ADDRESSES.map(entry => entry[1]);
+  const walletInput = document.getElementById('walletInput');
+  const walletResult = document.getElementById('walletResult');
+
+  showTab('wallet');
+  if (walletInput) walletInput.value = addresses.join('\n');
+  if (walletResult) {
+    walletResult.innerHTML = '<div class="notice">Loaded the 3 known exchange addresses. Calculating balances...</div>';
+  }
+
+  loadPseudoWallet(addresses);
+}
+
 function esc(value) {
   return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
