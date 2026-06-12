@@ -332,7 +332,6 @@
         <a href="https://t.me/nosocoin" target="_blank" rel="noopener"><img src="img/telegram.png" alt="Noso on Telegram"></a>
         <a href="https://github.com/Noso-Project/" target="_blank" rel="noopener"><img src="img/gh.png" alt="Noso on GitHub"></a>
         <a href="https://nosocoin.com/" target="_blank" rel="noopener"><img src="img/nosoN.png" alt="Noso website"></a>
-        <a href="https://api.nosocoin.com/" target="_blank" rel="noopener"><img src="img/api.png" alt="Noso API"></a>
       </div>
     </aside>
 
@@ -410,6 +409,10 @@
                     <tr><td>XeggeX</td><td><a class="mono" href="#" onclick="loadAddress('N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF'); return false;">N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF</a></td></tr>
                     <tr><td>NonKYC</td><td><a class="mono" href="#" onclick="loadAddress('N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH'); return false;">N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH</a></td></tr>
                     <tr><td>Azbit</td><td><a class="mono" href="#" onclick="loadAddress('N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh'); return false;">N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh</a></td></tr>
+                    <tr><td>SevenSeas</td><td><span class="muted">Address unknown / exchange shutdown</span></td></tr>
+                    <tr><td>Txbit</td><td><span class="muted">Address unknown / exchange shutdown</span></td></tr>
+                    <tr><td>Biconomy</td><td><span class="muted">Address unknown / delisted Noso pre-stoppage</span></td></tr>
+                    <tr><td>Finexbox</td><td><span class="muted">Unique address per user / unknown</span></td></tr>
                   </tbody>
                 </table>
                 <div class="quick-actions">
@@ -477,7 +480,7 @@
 
             <div id="exchange" class="result-section">
               <div class="notice">
-                These are labeled V1 exchange addresses. Use this section to look up any single exchange address or load all three into the Pseudo Wallet Calculator.
+                Known addresses can be looked up directly or loaded into the Pseudo Wallet Calculator. Other historical exchanges are listed for reference where the NosoV1 address is unknown.
               </div>
               <div style="height:14px"></div>
               <table class="kv-table exchange-table">
@@ -608,7 +611,7 @@ function showTab(tab) {
     address: ['Address Lookup', 'Lookup a NosoV1 address balance.'],
     wallet: ['Pseudo Wallet', 'Total multiple NosoV1 addresses into one read-only wallet view.'],
     gvt: ['Governance Addresses', 'Browse and search the 100 current GVT governance address slots.'],
-    exchange: ['Exchange Addresses', 'Known V1 exchange addresses for XeggeX, NonKYC, and Azbit.']
+    exchange: ['Exchange Addresses', 'Known and historical NosoV1 exchange references.']
   };
   document.getElementById('resultTitle').textContent = titles[tab]?.[0] || 'Explorer';
   document.getElementById('resultSubtitle').textContent = titles[tab]?.[1] || '';
