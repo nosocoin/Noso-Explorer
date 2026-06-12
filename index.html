@@ -320,7 +320,6 @@
         <button class="nav-link active" data-tab-nav="home" onclick="showTab('home')"><span>⌂ Overview</span><span class="badge">V1</span></button>
         <button class="nav-link" data-tab-nav="block" onclick="showTab('block')"><span>▦ Block Lookup</span></button>
         <button class="nav-link" data-tab-nav="orders" onclick="showTab('orders')"><span>⇄ Block Orders</span></button>
-        <button class="nav-link" data-tab-nav="masternodes" onclick="showTab('masternodes')"><span>● Block Masternodes</span></button>
         <button class="nav-link" data-tab-nav="address" onclick="showTab('address')"><span>◇ Address Lookup</span></button>
         <button class="nav-link" data-tab-nav="wallet" onclick="showTab('wallet')"><span>▣ Pseudo Wallet Calculator</span></button>
         <button class="nav-link" data-tab-nav="gvt" onclick="showTab('gvt')"><span>⚖ GVT Addresses</span><span class="badge">100</span></button>
@@ -333,6 +332,7 @@
         <a href="https://t.me/nosocoin" target="_blank" rel="noopener"><img src="img/telegram.png" alt="Noso on Telegram"></a>
         <a href="https://github.com/Noso-Project/" target="_blank" rel="noopener"><img src="img/gh.png" alt="Noso on GitHub"></a>
         <a href="https://nosocoin.com/" target="_blank" rel="noopener"><img src="img/nosoN.png" alt="Noso website"></a>
+        <a href="https://api.nosocoin.com/" target="_blank" rel="noopener"><img src="img/api.png" alt="Noso API"></a>
       </div>
     </aside>
 
@@ -341,7 +341,7 @@
         <div class="eyebrow">Research the completed NosoV1 chain</div>
         <h1>NosoV1 Final Explorer</h1>
         <p>
-          A single archive page for looking up V1 block details, all orders in a block, active masternodes, address balances, and the 100 governance address slots. This page is designed for research, not live block production.
+          A single archive page for looking up V1 block details, all orders in a block, address balances, and the 100 governance address slots. This page is designed for research, not live block production.
         </p>
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-label">Final V1 Block</div><div class="stat-value accent">180031</div></div>
@@ -353,13 +353,12 @@
         </div>
 
         <form class="search-card" onsubmit="unifiedSearch(event)">
-          <input id="mainSearch" autocomplete="off" placeholder="Search block height, Noso address, GVT slot, or GVT address" />
+          <input id="mainSearch" autocomplete="off" placeholder="Search block height, Noso address, order ID, GVT slot, or GVT address" />
           <button type="submit">Search</button>
         </form>
         <div class="quick-actions">
           <button class="btn secondary" onclick="loadBlock(180031)">Final Block</button>
           <button class="btn secondary" onclick="loadOrders(180031)">Final Block Orders</button>
-          <button class="btn secondary" onclick="loadMasternodes(180031)">Final Block Masternodes</button>
           <button class="btn secondary" onclick="showTab('wallet')">Pseudo Wallet Calculator</button>
           <button class="btn secondary" onclick="showTab('gvt')">Browse GVT Slots</button>
           <button class="btn secondary" onclick="showTab('exchange')">View Exchange Addresses</button>
@@ -371,7 +370,6 @@
         <button class="tab-button active" data-tab-button="home" onclick="showTab('home')">Overview</button>
         <button class="tab-button" data-tab-button="block" onclick="showTab('block')">Block</button>
         <button class="tab-button" data-tab-button="orders" onclick="showTab('orders')">Orders</button>
-        <button class="tab-button" data-tab-button="masternodes" onclick="showTab('masternodes')">Masternodes</button>
         <button class="tab-button" data-tab-button="address" onclick="showTab('address')">Address</button>
         <button class="tab-button" data-tab-button="wallet" onclick="showTab('wallet')">Pseudo Wallet Calculator</button>
         <button class="tab-button" data-tab-button="gvt" onclick="showTab('gvt')">Governance</button>
@@ -390,14 +388,13 @@
           <div class="panel-body">
             <div id="home" class="result-section active">
               <div class="notice">
-                <strong>Suggested use:</strong> enter a block height to load its block overview, use “Block Orders” to inspect all orders in that block, use “Block Masternodes” to see which nodes were active and paid, or enter a Noso address to check its V1 balance. Numeric searches from 0 through 180031 are treated as block heights. Numeric values from 00 through 99 can also be looked up in the Governance section.
+                <strong>Suggested use:</strong> enter a block height to load its block overview, use “Block Orders” to inspect all orders in that block, or enter a Noso address to check its V1 balance. Numeric searches from 0 through 180031 are treated as block heights. Numeric values from 00 through 99 can also be looked up in the Governance section.
               </div>
               <div style="height:14px"></div>
               <table class="kv-table">
                 <tbody>
                   <tr><td>Block lookup</td><td>Calls <span class="mono">getblocksinfo</span> and shows timestamps, hash, target, solution, minted address, reward, and fees.</td></tr>
                   <tr><td>Block orders</td><td>Calls <span class="mono">getblockorders</span> and renders each order as a readable card with sender, receiver, amount, fee, and reference.</td></tr>
-                  <tr><td>Block masternodes</td><td>Calls <span class="mono">getblockmns</span> and lists the masternodes active in that block. Masternodes began at block 48010; an active masternode in a block was paid even though no normal order records the payment.</td></tr>
                   <tr><td>Address lookup</td><td>Calls <span class="mono">getaddressbalance</span> and preserves the current balance / incoming / outgoing logic from your existing page.</td></tr>
                   <tr><td>Pseudo wallet</td><td>Paste multiple Noso addresses to total them together as a read-only wallet view. Each address is queried individually with <span class="mono">getaddressbalance</span>.</td></tr>
                   <tr><td>Governance lookup</td><td>Searches the fixed list of 100 current GVT governance slots and can also load a selected address balance.</td></tr>
@@ -447,14 +444,6 @@
                 <button class="btn" type="submit">Load Orders</button>
               </form>
               <div id="ordersResult" class="notice">Enter a block height to list all orders in that block. Example: final block 180031.</div>
-            </div>
-
-            <div id="masternodes" class="result-section">
-              <form class="mini-form" onsubmit="event.preventDefault(); loadMasternodes(document.getElementById('masternodesInput').value);">
-                <input id="masternodesInput" inputmode="numeric" placeholder="Block height, example: 180031" />
-                <button class="btn" type="submit">Load Masternodes</button>
-              </form>
-              <div id="masternodesResult" class="notice">Enter a block height from 48010 through 180031 to list the masternodes active and paid in that block.</div>
             </div>
 
             <div id="address" class="result-section">
@@ -537,13 +526,6 @@
                 <tr><td>Pedro conversion</td><td>1 NOSO = 100,000,000 Pedro</td></tr>
                 <tr><td>Final V1 range</td><td>Block 0 through block 180031</td></tr>
                 <tr><td>Final block window</td><td>9/14/2024, 5:20:01 PM – 5:30:00 PM</td></tr>
-                <tr><td>Masternode era</td><td>Block 48010 through block 180031</td></tr>
-                <tr><td>PoS era</td><td>Block 8425 through block 88399</td></tr>
-                <tr><td>PoS distribution</td><td>Automatically distributed to wallets holding at least 0.20% of the circulating supply in the current block.</td></tr>
-                <tr><td>Pure PoW reward era</td><td>Block 0 through block 88405</td></tr>
-                <tr><td>PoPW reward era</td><td>Block 88406 through approximately block 105261</td></tr>
-                <tr><td>PoP reward era</td><td>Approximately block 105262 through block 108861</td></tr>
-                <tr><td>Masternode-only reward era</td><td>Approximately block 108862 through block 180031</td></tr>
                 <tr><td>Known exchanges</td><td>XeggeX, NonKYC, Azbit</td></tr>
               </tbody>
             </table>
@@ -594,6 +576,20 @@ const EXCHANGE_ADDRESSES = [
   ['NonKYC', 'N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH'],
   ['Azbit', 'N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh']
 ];
+
+function loadExchangePseudoWallet() {
+  const addresses = EXCHANGE_ADDRESSES.map(entry => entry[1]);
+  const walletInput = document.getElementById('walletInput');
+  const walletResult = document.getElementById('walletResult');
+
+  showTab('wallet');
+  if (walletInput) walletInput.value = addresses.join('\n');
+  if (walletResult) {
+    walletResult.innerHTML = '<div class="notice">Loaded the 3 known exchange addresses. Calculating balances...</div>';
+  }
+
+  loadPseudoWallet(addresses);
+}
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -669,7 +665,6 @@ function showTab(tab) {
     home: ['Explorer Overview', 'Use the search above, or choose one of the lookup tools below.'],
     block: ['Block Lookup', 'Research one finalized NosoV1 block.'],
     orders: ['Block Orders', 'List the orders included in a finalized NosoV1 block.'],
-    masternodes: ['Block Masternodes', 'List the masternodes active and paid in a finalized NosoV1 block.'],
     address: ['Address Lookup', 'Lookup a NosoV1 address balance.'],
     wallet: ['Pseudo Wallet', 'Total multiple NosoV1 addresses into one read-only wallet view.'],
     gvt: ['Governance Addresses', 'Browse and search the 100 current GVT governance address slots.'],
@@ -719,41 +714,8 @@ async function loadBlock(value) {
     const next = block < FINAL_BLOCK ? linkAction('Next Block', `loadBlock(${block + 1})`) : linkAction('Next Block', `void(0)`, 'danger');
     document.getElementById('blockResult').innerHTML = `
       <table class="kv-table"><tbody>${table}</tbody></table>
-      <div class="quick-actions">${prev}${next}${linkAction('Show Block Orders', `loadOrders(${block})`)}${block >= 48010 ? linkAction('Show Block Masternodes', `loadMasternodes(${block})`) : ''}</div>`;
+      <div class="quick-actions">${prev}${next}${linkAction('Show Block Orders', `loadOrders(${block})`)}</div>`;
   } catch (e) { setError('blockResult', e); }
-}
-
-async function loadMasternodes(value) {
-  showTab('masternodes');
-  let block;
-  try { block = cleanBlock(value); } catch (e) { setError('masternodesResult', e); return; }
-  document.getElementById('masternodesInput').value = block;
-  updateUrl({ blockmns: block });
-  if (block < 48010) {
-    document.getElementById('masternodesResult').innerHTML = `<div class="notice">Masternodes were introduced at block 48010. Block ${block} predates masternode rewards.</div><div class="quick-actions">${linkAction('Go to First Masternode Block', 'loadMasternodes(48010)')}${linkAction('Show Block Overview', `loadBlock(${block})`)}</div>`;
-    return;
-  }
-  setLoading('masternodesResult', `Loading active masternodes for block ${block}...`);
-  try {
-    const result = await rpc('getblockmns', [block], 20, { timeoutMs: 25000 });
-    const addresses = String(result.addresses || '').split(',').map(address => address.trim()).filter(Boolean);
-    const count = Number.isFinite(Number(result.count)) ? Number(result.count) : addresses.length;
-    const rewardPedro = Number(result.reward || 0);
-    const totalPedro = Number(result.total || (rewardPedro * count));
-    const rows = addresses.map((address, index) => `<tr><td>${index + 1}</td><td>${addressLinkHtml(address)}</td><td class="amount">${fmtNoso(rewardPedro)} NOSO</td></tr>`).join('');
-    const prev = block > 48010 ? linkAction('Previous Block Masternodes', `loadMasternodes(${block - 1})`) : linkAction('Previous Block Masternodes', 'void(0)', 'danger');
-    const next = block < FINAL_BLOCK ? linkAction('Next Block Masternodes', `loadMasternodes(${block + 1})`) : linkAction('Next Block Masternodes', 'void(0)', 'danger');
-    document.getElementById('masternodesResult').innerHTML = `
-      <div class="summary-grid">
-        <div class="summary-box"><div class="label">Block</div><div class="value accent">${block}</div></div>
-        <div class="summary-box"><div class="label">Active Masternodes</div><div class="value">${count}</div></div>
-        <div class="summary-box"><div class="label">Reward per Node</div><div class="value amount">${fmtNoso(rewardPedro)} NOSO</div></div>
-        <div class="summary-box"><div class="label">Total Masternode Reward</div><div class="value amount">${fmtNoso(totalPedro)} NOSO</div></div>
-      </div>
-      <div class="notice" style="margin-bottom:14px">Each address below represents a masternode that was active in block ${block} and therefore received the listed reward. These payments are not represented as normal block orders.</div>
-      ${addresses.length ? `<table><thead><tr><th>#</th><th>Masternode Address</th><th>Reward</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="notice">No masternode addresses were returned for block ${block}.</div>`}
-      <div class="quick-actions">${prev}${next}${linkAction('Show Block Overview', `loadBlock(${block})`)}${linkAction('Show Block Orders', `loadOrders(${block})`)}</div>`;
-  } catch (e) { setError('masternodesResult', e); }
 }
 
 function parseSenderInfo(sender) {
@@ -812,10 +774,30 @@ async function loadOrders(value) {
 }
 function sendersNeedAmounts(sender) { return String(sender || '').split('][').length > 1; }
 
+function showCoinbaseInfo() {
+  showTab('address');
+  document.getElementById('addressInput').value = 'COINBASE';
+  updateUrl({ address: 'COINBASE' });
+  document.getElementById('addressResult').innerHTML = `
+    <div class="notice">
+      <strong>Coinbase / Mint Address</strong><br>
+      The Coinbase entry is the protocol-controlled source used to create and distribute block rewards. It is not a conventional Noso wallet address and therefore does not have a normal address balance to query.
+    </div>
+    <table class="kv-table"><tbody>
+      <tr><td>Entry Type</td><td><span class="pill accent">Protocol / Mint Source</span></td></tr>
+      <tr><td>Displayed As</td><td><span class="mono">COINBASE</span></td></tr>
+      <tr><td>Address Lookup</td><td>Not applicable</td></tr>
+    </tbody></table>`;
+}
+
 async function loadAddress(value) {
   showTab('address');
   const address = String(value || '').trim();
   if (!address) { setError('addressResult', 'Enter a Noso address.'); return; }
+  if (address.toUpperCase() === 'COINBASE') {
+    showCoinbaseInfo();
+    return;
+  }
   document.getElementById('addressInput').value = address;
   updateUrl({ address });
   setLoading('addressResult', `Loading address ${address}...`);
@@ -911,6 +893,9 @@ function addressTagsHtml(address) {
 }
 function addressLinkHtml(address) {
   const clean = String(address || '').trim();
+  if (clean.toUpperCase() === 'COINBASE') {
+    return `<a class="mono" href="#" onclick="showCoinbaseInfo(); return false;">COINBASE</a><div style="margin-top:6px"><span class="pill accent">Protocol / Mint Source</span></div>`;
+  }
   const tags = addressTagsHtml(clean);
   return `<a class="mono" href="#" onclick="loadAddress('${esc(clean)}'); return false;">${esc(clean)}</a>${tags ? `<div style="margin-top:6px">${tags}</div>` : ''}`;
 }
@@ -1004,13 +989,6 @@ async function loadPseudoWallet(addressesOverride = null) {
   }
 }
 
-function loadExchangePseudoWallet() {
-  const addresses = EXCHANGE_ADDRESSES.map(([, address]) => address);
-  document.getElementById('walletInput').value = addresses.join('\n');
-  showTab('wallet');
-  loadPseudoWallet(addresses);
-}
-
 function clearPseudoWallet() {
   document.getElementById('walletInput').value = '';
   document.getElementById('walletResult').innerHTML = '<div class="notice">Paste a list of addresses to calculate a combined V1 balance.</div>';
@@ -1072,7 +1050,6 @@ function bootFromUrl() {
   const p = new URLSearchParams(window.location.search);
   if (p.has('blockheight')) return loadBlock(p.get('blockheight'));
   if (p.has('blockorders')) return loadOrders(p.get('blockorders'));
-  if (p.has('blockmns')) return loadMasternodes(p.get('blockmns'));
   if (p.has('ordersheight')) return loadOrders(p.get('ordersheight'));
   if (p.has('address')) return loadAddress(p.get('address'));
   if (p.has('wallet')) { document.getElementById('walletInput').value = p.get('wallet'); return loadPseudoWallet(); }
