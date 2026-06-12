@@ -599,16 +599,48 @@ function cleanBlock(value) {
   }
   return block;
 }
-async function rpc(method, params, id = 18) {
-  const response = await fetch(RPC_ENDPOINT, {
-    method: 'POST',
-    body: JSON.stringify({ jsonrpc: '2.0', method, params, id })
-  });
-  if (!response.ok) throw new Error(`RPC HTTP error ${response.status}`);
-  const data = await response.json();
-  if (data.error) throw new Error(data.error.message || 'RPC returned an error.');
-  if (!data.result || !Array.isArray(data.result)) throw new Error('Invalid RPC response format.');
-  return data.result[0];
+async function rpc(method, params, id = 18, options = {}) {
+  const timeoutMs = options.timeoutMs || 20000;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(RPC_ENDPOINT, {
+      method: 'POST',
+      body: JSON.stringify({ jsonrpc: '2.0', method, params, id }),
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(`RPC HTTP error ${response.status}`);
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message || 'RPC returned an error.');
+    if (!data.result || !Array.isArray(data.result)) throw new Error('Invalid RPC response format.');
+    return data.result[0];
+  } catch (error) {
+    if (error && error.name === 'AbortError') throw new Error('RPC request timed out');
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function getAddressBalanceWithRetry(address, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const result = await rpc('getaddressbalance', [address], 2, { timeoutMs: 25000 });
+      if (!result || typeof result !== 'object') {
+        throw new Error('RPC returned no balance record');
+      }
+      return result;
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) await sleep(600 * attempt);
+    }
+  }
+  throw lastError || new Error('Balance lookup failed');
 }
 
 function showTab(tab) {
@@ -839,53 +871,87 @@ async function loadPseudoWallet(addressesOverride = null) {
     document.getElementById('walletResult').innerHTML = '<div class="notice error">Paste at least one Noso address.</div>';
     return;
   }
-  document.getElementById('walletResult').innerHTML = `<div class="notice loading">Loading ${addresses.length} address balance(s)...</div>`;
-  const results = await Promise.all(addresses.map(async address => {
-    try {
-      const result = await rpc('getaddressbalance', [address], 2);
-      return { address, ok: true, result };
-    } catch (error) {
-      return { address, ok: false, error: error.message || String(error) };
+
+  const resultBox = document.getElementById('walletResult');
+  const results = new Array(addresses.length);
+  let completed = 0;
+  const concurrency = Math.min(3, addresses.length);
+
+  function updateProgress() {
+    resultBox.innerHTML = `<div class="notice loading">Querying address balances: ${completed} of ${addresses.length} complete. Processing up to ${concurrency} at a time...</div>`;
+  }
+
+  updateProgress();
+  let nextIndex = 0;
+  async function worker() {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= addresses.length) return;
+      const address = addresses[index];
+      try {
+        const result = await getAddressBalanceWithRetry(address, 3);
+        results[index] = { address, ok: true, result };
+      } catch (error) {
+        results[index] = { address, ok: false, error: error.message || String(error) };
+      }
+      completed++;
+      updateProgress();
+      await sleep(150);
     }
-  }));
-  const okRows = results.filter(x => x.ok);
-  const failedRows = results.filter(x => !x.ok);
-  const totalPedro = okRows.reduce((sum, row) => sum + Number(row.result.balance || 0), 0);
-  const totalNoso = totalPedro * PEDRO;
-  const tableRows = results.map(row => {
-    if (!row.ok) {
-      return `<tr><td><span class="mono">${esc(row.address)}</span></td><td colspan="4"><span class="error">${esc(row.error)}</span></td></tr>`;
-    }
-    const balance = Number(row.result.balance || 0) * PEDRO;
-    const incoming = Number(row.result.incoming || 0) * PEDRO;
-    const outgoing = Number(row.result.outgoing || 0) * PEDRO;
-    const slots = gvtSlotListForAddress(row.result.address || row.address);
-    return `<tr>
-      <td>${addressLinkHtml(row.result.address || row.address)}</td>
-      <td class="amount">${balance.toFixed(8)} NOSO</td>
-      <td class="amount">${incoming.toFixed(8)}</td>
-      <td class="amount">${outgoing.toFixed(8)}</td>
-      <td>${addressTagsHtml(row.result.address || row.address)}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('walletResult').innerHTML = `
+  }
+
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
+
+  try {
+    const normalizedResults = results.map((row, index) => row || {
+      address: addresses[index],
+      ok: false,
+      error: 'No result was returned'
+    });
+    const okRows = normalizedResults.filter(x => x.ok && x.result && typeof x.result === 'object');
+    const failedRows = normalizedResults.filter(x => !x.ok || !x.result || typeof x.result !== 'object');
+    const totalPedro = okRows.reduce((sum, row) => {
+      const value = Number(row.result.balance);
+      return sum + (Number.isFinite(value) ? value : 0);
+    }, 0);
+    const totalNoso = totalPedro * PEDRO;
+    const tableRows = normalizedResults.map(row => {
+      if (!row.ok || !row.result || typeof row.result !== 'object') {
+        return `<tr><td><span class="mono">${esc(row.address || '')}</span></td><td colspan="4"><span class="error">${esc(row.error || 'Invalid RPC response')}</span></td></tr>`;
+      }
+      const rawBalance = Number(row.result.balance);
+      const rawIncoming = Number(row.result.incoming);
+      const rawOutgoing = Number(row.result.outgoing);
+      const balance = (Number.isFinite(rawBalance) ? rawBalance : 0) * PEDRO;
+      const incoming = (Number.isFinite(rawIncoming) ? rawIncoming : 0) * PEDRO;
+      const outgoing = (Number.isFinite(rawOutgoing) ? rawOutgoing : 0) * PEDRO;
+      const displayAddress = row.result.address || row.address;
+      return `<tr>
+        <td>${addressLinkHtml(displayAddress)}</td>
+        <td class="amount">${balance.toFixed(8)} NOSO</td>
+        <td class="amount">${incoming.toFixed(8)}</td>
+        <td class="amount">${outgoing.toFixed(8)}</td>
+        <td>${addressTagsHtml(displayAddress)}</td>
+      </tr>`;
+    }).join('');
+
+    resultBox.innerHTML = `
     <div class="summary-grid">
       <div class="summary-box"><div class="label">Pseudo Wallet Balance</div><div class="value accent amount">${totalNoso.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 8 })} NOSO</div></div>
       <div class="summary-box"><div class="label">Addresses Counted</div><div class="value">${okRows.length}</div></div>
       <div class="summary-box"><div class="label">Failed Lookups</div><div class="value">${failedRows.length}</div></div>
     </div>
+    ${failedRows.length ? '<div class="notice" style="margin-bottom:14px">Failed addresses were retried three times. You can run the calculation again to retry only transient RPC failures.</div>' : ''}
     <table>
       <thead><tr><th>Address</th><th>Balance</th><th>Incoming</th><th>Outgoing</th><th>Tags</th></tr></thead>
       <tbody>${tableRows}</tbody>
     </table>`;
+  } catch (error) {
+    resultBox.innerHTML = `<div class="notice error"><strong>Balance lookups completed, but the results could not be rendered.</strong><br>${esc(error.message || String(error))}</div>`;
+    console.error('Pseudo wallet render error:', error, results);
+  }
 }
-function loadGvtPseudoWallet() {
-  const uniqueGvtAddresses = [...new Set(GVT_ADDRESSES.map(x => x[1]))];
-  loadPseudoWallet(uniqueGvtAddresses);
-}
-function loadExchangePseudoWallet() {
-  loadPseudoWallet(EXCHANGE_ADDRESSES.map(x => x[1]));
-}
+
 function clearPseudoWallet() {
   document.getElementById('walletInput').value = '';
   document.getElementById('walletResult').innerHTML = '<div class="notice">Paste a list of addresses to calculate a combined V1 balance.</div>';
