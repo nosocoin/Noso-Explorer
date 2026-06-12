@@ -332,6 +332,7 @@
         <a href="https://t.me/nosocoin" target="_blank" rel="noopener"><img src="img/telegram.png" alt="Noso on Telegram"></a>
         <a href="https://github.com/Noso-Project/" target="_blank" rel="noopener"><img src="img/gh.png" alt="Noso on GitHub"></a>
         <a href="https://nosocoin.com/" target="_blank" rel="noopener"><img src="img/nosoN.png" alt="Noso website"></a>
+        <a href="https://api.nosocoin.com/" target="_blank" rel="noopener"><img src="img/api.png" alt="Noso API"></a>
       </div>
     </aside>
 
@@ -409,10 +410,6 @@
                     <tr><td>XeggeX</td><td><a class="mono" href="#" onclick="loadAddress('N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF'); return false;">N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF</a></td></tr>
                     <tr><td>NonKYC</td><td><a class="mono" href="#" onclick="loadAddress('N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH'); return false;">N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH</a></td></tr>
                     <tr><td>Azbit</td><td><a class="mono" href="#" onclick="loadAddress('N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh'); return false;">N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh</a></td></tr>
-                    <tr><td>SevenSeas</td><td><span class="muted">Address unknown / exchange shutdown</span></td></tr>
-                    <tr><td>Txbit</td><td><span class="muted">Address unknown / exchange shutdown</span></td></tr>
-                    <tr><td>Biconomy</td><td><span class="muted">Address unknown / delisted Noso pre-stoppage</span></td></tr>
-                    <tr><td>Finexbox</td><td><span class="muted">Unique address per user / unknown</span></td></tr>
                   </tbody>
                 </table>
                 <div class="quick-actions">
@@ -423,8 +420,13 @@
 
               <div class="home-wallet-callout">
                 <h3>Pseudo Wallet Calculator</h3>
-                <p>Paste 2 or more NosoV1 addresses and the page will total the balances into one read-only wallet-style view.</p>
-                <button class="btn" type="button" onclick="showTab('wallet')">Open Pseudo Wallet</button>
+                <p>Paste NosoV1 addresses, or import a <span class="mono">wallet.pkw</span> file to extract its public addresses locally in your browser.</p>
+                <div class="quick-actions">
+                  <label class="btn" for="overviewWalletFileInput" style="cursor:pointer; margin:0;">Import wallet.pkw</label>
+                  <input id="overviewWalletFileInput" type="file" accept=".pkw,application/octet-stream" style="position:absolute;left:-9999px" onchange="importWalletFile(this.files && this.files[0])">
+                  <button class="btn secondary" type="button" onclick="showTab('wallet')">Open Pseudo Wallet</button>
+                </div>
+                <p class="muted" style="margin-top:10px">The wallet file remains on your device. Only public Noso addresses are placed into the calculator.</p>
               </div>
             </div>
 
@@ -457,6 +459,15 @@
                 Paste one address per line, or separate addresses with commas, spaces, or semicolons. The page will query each address and total the current balances together without storing anything on a server.
               </div>
               <div style="height:14px"></div>
+              <div class="notice" style="margin-bottom:14px">
+                <strong>Import a Noso wallet file</strong><br>
+                Select a <span class="mono">wallet.pkw</span> file to extract its public Noso addresses locally in your browser. The file is not uploaded, and private/key data is not displayed or retained.
+                <div class="quick-actions" style="margin-top:12px">
+                  <input id="walletFileInput" type="file" accept=".pkw,application/octet-stream" onchange="importWalletFile(this.files && this.files[0])" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true">
+                  <button class="btn secondary" type="button" onclick="document.getElementById('walletFileInput').click()">Choose wallet.pkw</button>
+                </div>
+                <div id="walletFileStatus" class="muted" style="margin-top:8px">No wallet file selected.</div>
+              </div>
               <textarea id="walletInput" class="pseudo-wallet-box" spellcheck="false" placeholder="N2Z5gpSoNn2bKWYX8dc345fh52R81BR&#10;N486ha3uGaGPFqohMGV1HY7WoBAs5C2&#10;NpryectdevepmentfundsGE"></textarea>
               <div class="quick-actions">
                 <button class="btn" type="button" onclick="loadPseudoWallet()">Calculate Pseudo Wallet</button>
@@ -480,7 +491,7 @@
 
             <div id="exchange" class="result-section">
               <div class="notice">
-                Known addresses can be looked up directly or loaded into the Pseudo Wallet Calculator. Other historical exchanges are listed for reference where the NosoV1 address is unknown.
+                These are labeled V1 exchange addresses. Use this section to look up any single exchange address or load all three into the Pseudo Wallet Calculator.
               </div>
               <div style="height:14px"></div>
               <table class="kv-table exchange-table">
@@ -611,7 +622,7 @@ function showTab(tab) {
     address: ['Address Lookup', 'Lookup a NosoV1 address balance.'],
     wallet: ['Pseudo Wallet', 'Total multiple NosoV1 addresses into one read-only wallet view.'],
     gvt: ['Governance Addresses', 'Browse and search the 100 current GVT governance address slots.'],
-    exchange: ['Exchange Addresses', 'Known and historical NosoV1 exchange references.']
+    exchange: ['Exchange Addresses', 'Known V1 exchange addresses for XeggeX, NonKYC, and Azbit.']
   };
   document.getElementById('resultTitle').textContent = titles[tab]?.[0] || 'Explorer';
   document.getElementById('resultSubtitle').textContent = titles[tab]?.[1] || '';
@@ -752,6 +763,37 @@ async function loadAddress(value) {
   } catch (e) { setError('addressResult', e); }
 }
 
+
+async function importWalletFile(file) {
+  const status = document.getElementById('walletFileStatus');
+  const input = document.getElementById('walletInput');
+  if (!file) {
+    status.textContent = 'No wallet file selected.';
+    return;
+  }
+  showTab('wallet');
+  status.textContent = `Reading ${file.name} locally...`;
+  try {
+    const buffer = await file.arrayBuffer();
+    const text = new TextDecoder('windows-1252').decode(buffer);
+    // Noso V1 addresses found in wallet.pkw files are 30 or 31 ASCII characters,
+    // begin with N, and contain only letters and digits.
+    const matches = text.match(/(?<![A-Za-z0-9])N[A-Za-z0-9]{29,30}(?![A-Za-z0-9])/g) || [];
+    const addresses = parseWalletAddresses(matches.join('\n'));
+    if (!addresses.length) {
+      status.textContent = `No recognizable Noso addresses were found in ${file.name}.`;
+      return;
+    }
+    input.value = addresses.join('\n');
+    status.textContent = `Extracted ${addresses.length} unique public address${addresses.length === 1 ? '' : 'es'} from ${file.name}.`;
+    document.getElementById('walletResult').innerHTML = `<div class="notice">${addresses.length} address${addresses.length === 1 ? '' : 'es'} loaded. Click <strong>Calculate Pseudo Wallet</strong> to query and total their balances.</div>`;
+  } catch (error) {
+    status.textContent = `Unable to read ${file.name}: ${error.message || error}`;
+  } finally {
+    // Allow selecting the same file again after clearing or editing the list.
+    document.getElementById('walletFileInput').value = '';
+  }
+}
 
 function parseWalletAddresses(raw) {
   const seen = new Set();
