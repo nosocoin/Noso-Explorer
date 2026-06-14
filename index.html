@@ -324,7 +324,7 @@
         <button class="nav-link" data-tab-nav="address" onclick="showTab('address')"><span>◇ Address Lookup</span></button>
         <button class="nav-link" data-tab-nav="wallet" onclick="showTab('wallet')"><span>▣ Pseudo Wallet Calculator</span></button>
         <button class="nav-link" data-tab-nav="gvt" onclick="showTab('gvt')"><span>⚖ GVT Addresses</span><span class="badge">100</span></button>
-        <button class="nav-link" data-tab-nav="exchange" onclick="showTab('exchange')"><span>⇆ Exchange Addresses</span><span class="badge">7</span></button>
+        <button class="nav-link" data-tab-nav="exchange" onclick="showTab('exchange')"><span>⇆ Exchange Addresses</span><span class="badge">8</span></button>
       </nav>
 
       <div class="socials" aria-label="Noso links">
@@ -349,7 +349,7 @@
           <div class="stat-card"><div class="stat-label">Final Block Start</div><div class="stat-value">9/14/2024 5:20:01 PM</div></div>
           <div class="stat-card"><div class="stat-label">Final Block End</div><div class="stat-value">9/14/2024 5:30:00 PM</div></div>
           <div class="stat-card"><div class="stat-label">Governance Slots</div><div class="stat-value">100</div></div>
-          <div class="stat-card"><div class="stat-label">Known Exchange Addresses</div><div class="stat-value">3</div></div>
+          <div class="stat-card"><div class="stat-label">Exchange Addresses</div><div class="stat-value">3</div></div>
         </div>
 
         <form class="search-card" onsubmit="unifiedSearch(event)">
@@ -401,7 +401,7 @@
                   <tr><td>Address lookup</td><td>Calls <span class="mono">getaddressbalance</span> and preserves the current balance / incoming / outgoing logic from your existing page.</td></tr>
                   <tr><td>Pseudo wallet</td><td>Paste multiple Noso addresses to total them together as a read-only wallet view. Each address is queried individually with <span class="mono">getaddressbalance</span>.</td></tr>
                   <tr><td>Governance lookup</td><td>Searches the fixed list of 100 current GVT governance slots and can also load a selected address balance.</td></tr>
-                  <tr><td>Exchange addresses</td><td>Tags the three known exchange deposit/collection addresses in address lookup, block orders, and pseudo wallet results. SevenSeas, Txbit, Biconomy, and Finexbox are also listed as historical exchange references where a shared NosoV1 address is unknown.</td></tr>
+                  <tr><td>Exchange addresses</td><td>Tags the three known exchange deposit/collection addresses in address lookup, block orders, and pseudo wallet results. SevenSeas, Txbit, Biconomy, Finexbox, and DogCash Wallet are also listed as historical exchange/wallet references where a shared NosoV1 address is unknown.</td></tr>
                 </tbody>
               </table>
 
@@ -417,6 +417,7 @@
                     <tr><td>Txbit</td><td>Address unknown / exchange shutdown</td></tr>
                     <tr><td>Biconomy</td><td>Address unknown / delisted Noso pre-stoppage</td></tr>
                     <tr><td>Finexbox</td><td>Unique address per user / unknown</td></tr>
+                    <tr><td>DogCash Wallet</td><td>Address unknown</td></tr>
                   </tbody>
                 </table>
                 <div class="quick-actions">
@@ -506,7 +507,7 @@
 
             <div id="exchange" class="result-section">
               <div class="notice">
-                The first three entries are known NosoV1 exchange addresses and can be looked up or loaded into the Pseudo Wallet Calculator. The remaining exchanges are historical references whose common NosoV1 address is unknown.
+                The first three entries are known NosoV1 exchange addresses and can be looked up or loaded into the Pseudo Wallet Calculator. The remaining entries are historical exchange/wallet references whose common NosoV1 address is unknown.
               </div>
               <div style="height:14px"></div>
               <table class="kv-table exchange-table">
@@ -514,10 +515,6 @@
                   <tr><td>XeggeX</td><td><a class="mono" href="#" onclick="loadAddress('N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF'); return false;">N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF</a></td></tr>
                   <tr><td>NonKYC</td><td><a class="mono" href="#" onclick="loadAddress('N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH'); return false;">N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH</a></td></tr>
                   <tr><td>Azbit</td><td><a class="mono" href="#" onclick="loadAddress('N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh'); return false;">N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh</a></td></tr>
-                    <tr><td>SevenSeas</td><td>Address unknown / exchange shutdown</td></tr>
-                    <tr><td>Txbit</td><td>Address unknown / exchange shutdown</td></tr>
-                    <tr><td>Biconomy</td><td>Address unknown / delisted Noso pre-stoppage</td></tr>
-                    <tr><td>Finexbox</td><td>Unique address per user / unknown</td></tr>
                 </tbody>
               </table>
               <div class="quick-actions">
@@ -548,12 +545,12 @@
                 <tr><td>Masternode era</td><td>Block 48010 through block 180031</td></tr>
                 <tr><td>PoS era</td><td>Block 8425 through block 88399</td></tr>
                 <tr><td>PoS distribution</td><td>Automatically distributed to wallets holding at least 0.20% of the circulating supply in the current block.</td></tr>
-                <tr><td>Pure PoW reward era</td><td>Block 0 through block 88405</td></tr>
-                <tr><td>PoPW reward era</td><td>Block 88406 through approximately block 105261</td></tr>
-                <tr><td>PoP reward era</td><td>Approximately block 105262 through block 108861</td></tr>
-                <tr><td>Masternode-only reward era</td><td>Approximately block 108862 through block 180031</td></tr>
+                <tr><td>Last pure PoW block</td><td>Block 88405</td></tr>
+                <tr><td>PoPW implementation</td><td>Approximately block 82812</td></tr>
+                                <tr><td>PoP transition</td><td>Approximately block 105262</td></tr>
+                <tr><td>Masternode-only rewards</td><td>Approximately block 108862</td></tr>
                 <tr><td>Known exchange addresses</td><td>XeggeX, NonKYC, Azbit</td></tr>
-                <tr><td>Other historical exchanges</td><td>SevenSeas, Txbit, Biconomy, Finexbox</td></tr>
+                <tr><td>Other historical exchanges / wallets</td><td>SevenSeas, Txbit, Biconomy, Finexbox, DogCash Wallet</td></tr>
               </tbody>
             </table>
             <div style="height:14px"></div>
@@ -682,7 +679,7 @@ function showTab(tab) {
     address: ['Address Lookup', 'Lookup a NosoV1 address balance.'],
     wallet: ['Pseudo Wallet', 'Total multiple NosoV1 addresses into one read-only wallet view.'],
     gvt: ['Governance Addresses', 'Browse and search the 100 current GVT governance address slots.'],
-    exchange: ['Exchange Addresses', 'Known V1 exchange addresses plus historical exchange references with unknown addresses.']
+    exchange: ['Exchange Addresses', 'Known V1 exchange addresses plus historical exchange/wallet references with unknown addresses.']
   };
   document.getElementById('resultTitle').textContent = titles[tab]?.[0] || 'Explorer';
   document.getElementById('resultSubtitle').textContent = titles[tab]?.[1] || '';
@@ -821,10 +818,30 @@ async function loadOrders(value) {
 }
 function sendersNeedAmounts(sender) { return String(sender || '').split('][').length > 1; }
 
+function showCoinbaseInfo() {
+  showTab('address');
+  document.getElementById('addressInput').value = 'COINBASE';
+  updateUrl({ address: 'COINBASE' });
+  document.getElementById('addressResult').innerHTML = `
+    <div class="notice">
+      <strong>Coinbase / Mint Address</strong><br>
+      The Coinbase entry is the protocol-controlled source used to create and distribute block rewards. It is not a conventional Noso wallet address and therefore does not have a normal address balance to query.
+    </div>
+    <table class="kv-table"><tbody>
+      <tr><td>Entry Type</td><td><span class="pill accent">Protocol / Mint Source</span></td></tr>
+      <tr><td>Displayed As</td><td><span class="mono">COINBASE</span></td></tr>
+      <tr><td>Address Lookup</td><td>Not applicable</td></tr>
+    </tbody></table>`;
+}
+
 async function loadAddress(value) {
   showTab('address');
   const address = String(value || '').trim();
   if (!address) { setError('addressResult', 'Enter a Noso address.'); return; }
+  if (address.toUpperCase() === 'COINBASE') {
+    showCoinbaseInfo();
+    return;
+  }
   document.getElementById('addressInput').value = address;
   updateUrl({ address });
   setLoading('addressResult', `Loading address ${address}...`);
@@ -920,6 +937,9 @@ function addressTagsHtml(address) {
 }
 function addressLinkHtml(address) {
   const clean = String(address || '').trim();
+  if (clean.toUpperCase() === 'COINBASE') {
+    return `<a class="mono" href="#" onclick="showCoinbaseInfo(); return false;">COINBASE</a><div style="margin-top:6px"><span class="pill accent">Protocol / Mint Source</span></div>`;
+  }
   const tags = addressTagsHtml(clean);
   return `<a class="mono" href="#" onclick="loadAddress('${esc(clean)}'); return false;">${esc(clean)}</a>${tags ? `<div style="margin-top:6px">${tags}</div>` : ''}`;
 }
