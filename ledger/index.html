@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Noso V1 Address Transfer Web</title>
+<script src="https://unpkg.com/vis-network@9.1.9/dist/vis-network.min.js"></script>
+<style>
+:root{--bg:#171717;--panel:#222;--panel2:#2b2b2b;--text:#eee;--muted:#aaa;--accent:#fbe04d;--border:#444;--good:#86d993;--bad:#f08a8a}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:14px Arial,sans-serif}
+header{padding:16px 20px;border-bottom:1px solid var(--border);background:#1d1d1d} h1{margin:0 0 5px;font-size:22px;color:var(--accent)}
+header p{margin:0;color:var(--muted)} main{padding:14px;display:grid;gap:12px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:12px}
+.controls{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:end}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+input,select,button{width:100%;background:#111;color:var(--text);border:1px solid #555;border-radius:5px;padding:9px} button{cursor:pointer;font-weight:bold;background:#333}button.primary{background:var(--accent);color:#111;border-color:var(--accent)}button:hover{filter:brightness(1.1)}
+.file-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.file-row input{max-width:560px}.status{color:var(--muted)}.status.good{color:var(--good)}.status.bad{color:var(--bad)}
+.cards{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px}.card{background:var(--panel2);border-radius:7px;padding:10px}.card b{display:block;color:var(--accent);font-size:18px;margin-top:3px}.card span{color:var(--muted);font-size:12px}.balance-controls{display:grid;grid-template-columns:2fr 1fr auto;gap:8px;align-items:end}.balance-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:8px;margin-top:10px}.balance-card{background:var(--panel2);border-radius:7px;padding:10px}.balance-card span{display:block;color:var(--muted);font-size:12px}.balance-card b{display:block;color:var(--accent);font-size:17px;margin-top:4px}.balance-card.positive b{color:var(--good)}.balance-card.negative b{color:var(--bad)}
+#network{height:620px;background:#111;border:1px solid var(--border);border-radius:8px}.hint{margin-top:8px;color:var(--muted);font-size:12px}
+.main-controls{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr)) auto;gap:8px;align-items:end}.owned-controls{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr)) auto;gap:8px;align-items:end}.main-summary{margin-top:8px;color:var(--muted)}.candidate-badge{display:inline-block;padding:2px 7px;border-radius:10px;background:#7047a8;color:#fff;font-size:11px}.owned-badge{display:inline-block;padding:2px 7px;border-radius:10px;background:#2f7fd1;color:#fff;font-size:11px}.table-wrap{max-height:330px;overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px;border-bottom:1px solid #3d3d3d;white-space:nowrap}th{position:sticky;top:0;background:#292929;color:var(--accent)}td.address{font-family:Consolas,monospace;cursor:pointer}td.address:hover{text-decoration:underline;color:var(--accent)}
+@media(max-width:950px){.controls,.balance-controls,.main-controls,.owned-controls{grid-template-columns:1fr 1fr}.cards,.balance-grid{grid-template-columns:repeat(2,1fr)}#network{height:520px}}@media(max-width:520px){.controls,.balance-controls,.main-controls,.owned-controls{grid-template-columns:1fr}.cards,.balance-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><h1>Noso V1 Address Transfer Web</h1><p>Automatically loads compact Noso V1 ledger JSON, maps coinbase and reward payments, searches addresses, and explores transfer relationships.</p></header>
+<main>
+<section class="panel">
+  <div class="file-row">
+    <button id="loadBtn" style="width:auto">Reload JSON data</button>
+    <span id="loadStatus" class="status">Waiting to load ./data/manifest.json…</span>
+  </div>
+  <div class="hint">This page expects the converter output beneath <code>./data/</code>: manifest.json, addresses.json, address-summary.json, shards/, and address-index/.</div>
+</section>
+<section class="panel controls">
+  <div class="field"><label>Address</label><input id="address" placeholder="Enter a Noso address"></div>
+  <div class="field"><label>Direction</label><select id="direction"><option value="both">Incoming + outgoing</option><option value="incoming">Incoming only</option><option value="outgoing">Outgoing only</option><option value="backward">Trace backward</option></select></div>
+  <div class="field"><label>Depth</label><select id="depth"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div>
+  <div class="field"><label>Minimum NOSO</label><input id="minAmount" type="number" min="0" step="0.01" value="0"></div>
+  <div class="field"><label>Maximum edges</label><input id="maxEdges" type="number" min="10" max="2000" value="300"></div>
+  <button class="primary" id="drawBtn">Draw web</button>
+</section>
+<section class="panel">
+  <label style="margin-right:18px"><input id="includeOrigins" type="checkbox" checked style="width:auto;margin-right:6px">Map coinbase/reward payments and block-fee credits by default</label>
+  <label><input id="showAmounts" type="checkbox" checked style="width:auto;margin-right:6px">Show transfer amounts on arrows</label>
+  <span class="hint" style="display:block">Coinbase-origin BLOCK_REWARD, MASTERNODE_REWARD, POS_REWARD, and aggregate BLOCK_FEES credits are enabled by default. ORDER_FEE_CREDIT rows remain excluded because they duplicate the block-fee total. Block details remain available by hovering over an arrow even when transfer amounts are hidden.</span>
+</section>
+<section class="panel">
+  <div class="balance-controls">
+    <div class="field"><label>Balance address</label><input id="balanceAddress" placeholder="Uses the active graph address"></div>
+    <div class="field"><label>Historical balance through block</label><input id="balanceBlock" type="number" min="0" step="1" placeholder="Latest loaded block"></div>
+    <button id="balanceBtn">Calculate balance</button>
+  </div>
+  <div class="balance-grid">
+    <div class="balance-card" id="ledgerBalanceCard"><span>Ledger balance</span><b id="ledgerBalance">0</b></div>
+    <div class="balance-card"><span>Transfers received</span><b id="balanceReceived">0</b></div>
+    <div class="balance-card"><span>Transfers sent</span><b id="balanceSent">0</b></div>
+    <div class="balance-card"><span>Minted rewards</span><b id="balanceRewards">0</b></div>
+    <div class="balance-card"><span>Block fees earned</span><b id="balanceFees">0</b></div>
+    <div class="balance-card"><span>Calculated through block</span><b id="balanceThrough">—</b></div>
+  </div>
+  <div class="hint">Raw ledger balance = transfers received + BLOCK_REWARD + MASTERNODE_REWARD + POS_REWARD + BLOCK_FEES − transfers sent. ORDER_FEE_CREDIT remains excluded. COINBASE is an issuance label rather than a spendable wallet, so its balance is shown as not applicable.</div>
+</section>
+<section class="panel">
+  <h3 style="margin-top:0;color:var(--accent)">Main wallet candidates</h3>
+  <div class="main-controls">
+    <div class="field"><label>Minimum unique senders</label><input id="mainMinSenders" type="number" min="1" step="1" value="10"></div>
+    <div class="field"><label>Minimum incoming transfers</label><input id="mainMinIncoming" type="number" min="1" step="1" value="25"></div>
+    <div class="field"><label>Minimum received NOSO</label><input id="mainMinReceived" type="number" min="0" step="1" value="100"></div>
+    <div class="field"><label>Minimum retained balance</label><input id="mainMinBalance" type="number" min="0" step="1" value="0"></div>
+    <div class="field"><label>Maximum candidates</label><input id="mainMaxResults" type="number" min="5" max="500" step="5" value="50"></div>
+    <button id="mainScanBtn">Find candidates</button>
+  </div>
+  <div style="margin-top:9px">
+    <label style="margin-right:18px"><input id="mainExcludePools" type="checkbox" checked style="width:auto;margin-right:6px">Exclude detected pool addresses</label>
+    <label><input id="mainHighlight" type="checkbox" checked style="width:auto;margin-right:6px">Highlight candidates on graph</label>
+  </div>
+  <div id="mainSummary" class="main-summary">Loading ledger JSON to scan for candidate main-wallet addresses.</div>
+  <div class="table-wrap" style="margin-top:8px;max-height:300px"><table><thead><tr><th>Address</th><th>Score</th><th>Unique senders</th><th>Incoming</th><th>Total received</th><th>Sent</th><th>Ledger balance</th><th>Retention</th><th>First block</th><th>Last block</th></tr></thead><tbody id="mainRows"></tbody></table></div>
+  <div class="hint"><span class="candidate-badge">Purple square</span> indicates an inferred main-wallet candidate. This is behavioral classification, not proof of wallet ownership. Many unique senders is weighted most heavily; pool addresses can be excluded to avoid payout hubs.</div>
+</section>
+<section class="panel">
+  <h3 style="margin-top:0;color:var(--accent)">Potential owned feeder addresses for the active wallet</h3>
+  <div class="owned-controls">
+    <div class="field"><label>Minimum % of sender outgoing to wallet</label><input id="ownedMinPct" type="number" min="0" max="100" step="5" value="60"></div>
+    <div class="field"><label>Minimum sent NOSO to wallet</label><input id="ownedMinAmount" type="number" min="0" step="1" value="1"></div>
+    <div class="field"><label>Minimum transfers to wallet</label><input id="ownedMinTransfers" type="number" min="1" step="1" value="1"></div>
+    <div class="field"><label>Maximum unique recipients</label><input id="ownedMaxRecipients" type="number" min="1" step="1" value="3"></div>
+    <div class="field"><label>Maximum results</label><input id="ownedMaxResults" type="number" min="5" max="500" step="5" value="75"></div>
+    <div style="display:grid;gap:6px"><button id="ownedAnalyzeBtn">Analyze feeders</button><button class="primary" id="ownedClusterBtn">Show feeder cluster</button></div>
+  </div>
+  <div style="margin-top:9px">
+    <label style="margin-right:18px"><input id="ownedExcludePools" type="checkbox" checked style="width:auto;margin-right:6px">Exclude detected pool addresses</label>
+    <label><input id="ownedHighlight" type="checkbox" checked style="width:auto;margin-right:6px">Highlight likely owned feeders in normal graph</label>
+  </div>
+  <div id="ownedSummary" class="main-summary">Load ledger JSON and select a candidate wallet to inspect its likely owned feeder addresses.</div>
+  <div class="table-wrap" style="margin-top:8px;max-height:300px"><table><thead><tr><th>Address</th><th>Score</th><th>Sent to wallet</th><th>Transfers</th><th>% of sender outgoing</th><th>Unique recipients</th><th>Total sent</th><th>Ledger balance</th><th>First block</th><th>Last block</th></tr></thead><tbody id="ownedRows"></tbody></table></div>
+  <div class="hint"><span class="owned-badge">Blue triangle</span> indicates an address that appears to feed funds primarily into the active wallet. This is only a behavioral heuristic. Use “Show feeder cluster” for a dedicated view where the main wallet is centered and every matching feeder is displayed as a blue triangle.</div>
+</section>
+<section class="cards">
+  <div class="card"><span>JSON events loaded</span><b id="rowCount">0</b></div>
+  <div class="card"><span>Transfer records</span><b id="transferCount">0</b></div>
+  <div class="card"><span>Detected pool addresses</span><b id="poolCount">0</b></div>
+  <div class="card"><span>Graph addresses</span><b id="nodeCount">0</b></div>
+  <div class="card"><span>Graph relationships</span><b id="edgeCount">0</b></div>
+  <div class="card"><span>Displayed NOSO</span><b id="amountCount">0</b></div>
+</section>
+<section class="panel"><div id="network"></div><div class="hint"><b style="color:#e69f3a">Orange hexagons</b> are addresses inferred as pool addresses from POOLPAYMENT references. <b style="color:#86d993">The green diamond</b> represents COINBASE issuance and is mapped by default. <b style="color:#a978e8">Purple squares</b> are inferred main-wallet candidates. <b style="color:#66b3ff">Blue triangles</b> are likely feeder addresses that appear to route most of their outgoing funds into the active wallet. <b style="color:#86d993">Green arrows</b> are incoming transfers to the active address, <b style="color:#f08a8a">red arrows</b> are outgoing transfers from the active address, and gray arrows are indirect relationships at deeper trace levels. Red and green arrows show the transfer amount, while the block number or block range appears when you hover over the arrow. The graph gently floats after it settles. Click a node to make it the active address. Double-click a node to redraw the graph around it. Edge values combine repeated transfers between the same two addresses.</div></section>
+<section class="panel"><h3 style="margin-top:0;color:var(--accent)">Displayed relationships</h3><div class="table-wrap"><table><thead><tr><th>From</th><th>To</th><th>Total NOSO</th><th>Transfers</th><th>First block</th><th>Last block</th><th>References</th></tr></thead><tbody id="edgeRows"></tbody></table></div></section>
+</main>
+<script>
+'use strict';
+
+const DATA_ROOT='./data';
+const PEDRO_PER_NOSO=100000000;
+const state={
+  manifest:null,addresses:[],addressToId:new Map(),addressSummaries:null,
+  rows:[],out:new Map(),inc:new Map(),poolAddresses:new Map(),mainWallets:new Map(),
+  ownedFeeders:new Map(),currentOwnedTarget:'',network:null,currentGraph:null,
+  floatFrame:null,floatBase:null,floatStart:0,maxBlock:0,loading:false
+};
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
+function setStatus(text,cls=''){const e=$('loadStatus');e.textContent=text;e.className='status '+cls;}
+async function fetchJson(path){
+  const response=await fetch(path,{cache:'no-cache'});
+  if(!response.ok)throw new Error(`HTTP ${response.status} loading ${path}`);
+  return response.json();
+}
+function addIndex(map,key,idx){if(!key)return;if(!map.has(key))map.set(key,[]);map.get(key).push(idx);}
+function reverseTypeCodes(typeCodes){const r={};for(const [name,code] of Object.entries(typeCodes||{}))r[Number(code)]=name;return r;}
+function decodeAddress(id){return Number(id)>=0?(state.addresses[Number(id)]||''):'';}
+function resetLoadedState(){
+  stopFloating();if(state.network){state.network.destroy();state.network=null;}
+  state.rows=[];state.out.clear();state.inc.clear();state.poolAddresses.clear();state.mainWallets.clear();
+  state.ownedFeeders.clear();state.currentOwnedTarget='';state.maxBlock=0;
+}
+async function loadJsonData(){
+  if(state.loading)return;state.loading=true;$('loadBtn').disabled=true;resetLoadedState();
+  try{
+    setStatus(`Loading ${DATA_ROOT}/manifest.json…`);
+    const manifest=await fetchJson(`${DATA_ROOT}/manifest.json`);state.manifest=manifest;
+    setStatus('Loading address dictionary and summaries…');
+    const [addressDoc,summaryDoc]=await Promise.all([
+      fetchJson(`${DATA_ROOT}/${manifest.addressFiles.dictionary}`),
+      fetchJson(`${DATA_ROOT}/${manifest.addressFiles.summary}`)
+    ]);
+    state.addresses=addressDoc.addresses||[];state.addressToId=new Map(state.addresses.map((a,i)=>[a,i]));state.addressSummaries=summaryDoc;
+    const typeNames=reverseTypeCodes(manifest.typeCodes);
+    const shards=[...(manifest.shards||[])].sort((a,b)=>(a.actualFrom??a.declaredFrom)-(b.actualFrom??b.declaredFrom));
+    let loaded=0;
+    for(let s=0;s<shards.length;s++){
+      const meta=shards[s];setStatus(`Loading JSON shard ${s+1} of ${shards.length}: ${meta.file}`);
+      const doc=await fetchJson(`${DATA_ROOT}/${meta.file}`);
+      for(const row of (doc.events||[])){
+        const type=typeNames[Number(row[1])]||`TYPE_${row[1]}`;
+        const rec={block:Number(row[0]),type,from:decodeAddress(row[2]),to:decodeAddress(row[3]),amount:Number(row[4]||0)/PEDRO_PER_NOSO,amountPedro:Number(row[4]||0),feePedro:Number(row[5]||0),synthetic:Number(row[6])===1,order:row[7]||'',ref:row[8]||''};
+        const idx=state.rows.length;state.rows.push(rec);addIndex(state.out,rec.from,idx);addIndex(state.inc,rec.to,idx);state.maxBlock=Math.max(state.maxBlock,rec.block);
+        if(type==='ORDER_TRANSFER'&&/POOLPAYMENT/i.test(rec.ref)&&rec.from){
+          const raw=rec.ref.replace(/^EXPEL_/i,'').replace(/^POOLPAYMENT_/i,'').trim()||'Unknown pool';
+          let info=state.poolAddresses.get(rec.from);if(!info){info={names:new Map(),count:0,amount:0};state.poolAddresses.set(rec.from,info);}
+          info.names.set(raw,(info.names.get(raw)||0)+1);info.count++;info.amount+=rec.amount;
+        }
+      }
+      loaded+=(doc.events||[]).length;await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    $('rowCount').textContent=fmt(loaded);$('transferCount').textContent=fmt(state.rows.filter(r=>r.type==='ORDER_TRANSFER').length);$('poolCount').textContent=fmt(state.poolAddresses.size);
+    $('address').value='COINBASE';$('balanceAddress').value='COINBASE';$('balanceBlock').value=state.maxBlock;
+    const gaps=(manifest.knownGaps||[]).length;setStatus(`Loaded ${fmt(loaded)} events from ${shards.length} JSON shards, ${fmt(state.addresses.length)} identifiers, and ${fmt(state.poolAddresses.size)} pool-associated addresses${gaps?`; manifest reports ${gaps} known gap(s)`:''}.`,'good');
+    scanMainWallets();draw();
+  }catch(error){console.error(error);setStatus(`JSON load failed: ${error.message}. Serve this page over HTTP and verify the ./data directory structure.`,'bad');}
+  finally{state.loading=false;$('loadBtn').disabled=false;}
+}
+function stopFloating(){if(state.floatFrame){cancelAnimationFrame(state.floatFrame);state.floatFrame=null;}state.floatBase=null;}
+function startFloating(){
+  stopFloating();if(!state.network)return;state.floatBase=state.network.getPositions();state.floatStart=performance.now();
+  const animate=now=>{if(!state.network||!state.floatBase)return;const t=(now-state.floatStart)/1000;
+    for(const [id,p] of Object.entries(state.floatBase)){let hash=0;for(let i=0;i<id.length;i++)hash=(hash*31+id.charCodeAt(i))>>>0;const phase=(hash%628)/100,radius=1.8+(hash%7)*0.18,speed=0.22+(hash%5)*0.025;state.network.moveNode(id,p.x+Math.sin(t*speed+phase)*radius,p.y+Math.cos(t*(speed*0.83)+phase)*radius);}
+    state.floatFrame=requestAnimationFrame(animate);};state.floatFrame=requestAnimationFrame(animate);
+}
+function calculateBalance(address,throughBlock){
+  if(!address)return null;const block=Number.isFinite(throughBlock)?Math.min(Math.max(0,Math.floor(throughBlock)),state.maxBlock):state.maxBlock;
+  if(address==='COINBASE')return {address,block,coinbase:true,received:0,sent:0,rewards:0,fees:0,balance:null,first:null,last:null};
+  let received=0,sent=0,rewards=0,fees=0,first=null,last=null;const indexes=new Set([...(state.inc.get(address)||[]),...(state.out.get(address)||[])]);
+  for(const idx of indexes){const r=state.rows[idx];if(r.block>block)continue;if(first===null||r.block<first)first=r.block;if(last===null||r.block>last)last=r.block;
+    if(r.type==='ORDER_TRANSFER'){if(r.to===address)received+=r.amount;if(r.from===address)sent+=r.amount;}
+    else if(r.type==='BLOCK_FEES'&&r.to===address)fees+=r.amount;
+    else if(['BLOCK_REWARD','MASTERNODE_REWARD','POS_REWARD'].includes(r.type)&&r.to===address)rewards+=r.amount;
+  }
+  return {address,block,coinbase:false,received,sent,rewards,fees,balance:received+rewards+fees-sent,first,last};
+}
+function updateBalance(){
+  if(!state.rows.length)return;const address=($('balanceAddress').value.trim()||$('address').value.trim());let block=parseInt($('balanceBlock').value,10);if(!Number.isFinite(block))block=state.maxBlock;block=Math.min(Math.max(0,block),state.maxBlock);$('balanceBlock').value=block;$('balanceAddress').value=address;
+  const b=calculateBalance(address,block);if(!b)return;const card=$('ledgerBalanceCard');card.classList.remove('positive','negative');
+  if(b.coinbase){$('ledgerBalance').textContent='N/A';$('balanceReceived').textContent='—';$('balanceSent').textContent='—';$('balanceRewards').textContent='—';$('balanceFees').textContent='—';}
+  else{$('ledgerBalance').textContent=fmt(b.balance)+' NOSO';$('balanceReceived').textContent=fmt(b.received);$('balanceSent').textContent=fmt(b.sent);$('balanceRewards').textContent=fmt(b.rewards);$('balanceFees').textContent=fmt(b.fees);card.classList.add(b.balance<0?'negative':'positive');}
+  $('balanceThrough').textContent=fmt(block);
+}
+function scanMainWallets(){
+  if(!state.rows.length)return;const minSenders=Math.max(1,+$('mainMinSenders').value||1),minIncoming=Math.max(1,+$('mainMinIncoming').value||1),minReceived=Math.max(0,+$('mainMinReceived').value||0),minBalance=Math.max(0,+$('mainMinBalance').value||0),maxResults=Math.min(500,Math.max(5,+$('mainMaxResults').value||50)),excludePools=$('mainExcludePools').checked;
+  const stats=new Map(),get=a=>{let x=stats.get(a);if(!x){x={address:a,senders:new Set(),incoming:0,received:0,sent:0,rewards:0,fees:0,first:null,last:null};stats.set(a,x);}return x;};
+  for(const r of state.rows){if(r.type==='ORDER_TRANSFER'){if(r.to&&r.to!=='COINBASE'){const x=get(r.to);x.incoming++;x.received+=r.amount;if(r.from&&r.from!=='COINBASE')x.senders.add(r.from);x.first=x.first===null?r.block:Math.min(x.first,r.block);x.last=x.last===null?r.block:Math.max(x.last,r.block);}if(r.from&&r.from!=='COINBASE'){const x=get(r.from);x.sent+=r.amount;x.first=x.first===null?r.block:Math.min(x.first,r.block);x.last=x.last===null?r.block:Math.max(x.last,r.block);}}
+    else if(['BLOCK_REWARD','BLOCK_FEES','MASTERNODE_REWARD','POS_REWARD'].includes(r.type)&&r.to&&r.to!=='COINBASE'){const x=get(r.to);if(r.type==='BLOCK_FEES')x.fees+=r.amount;else x.rewards+=r.amount;x.first=x.first===null?r.block:Math.min(x.first,r.block);x.last=x.last===null?r.block:Math.max(x.last,r.block);}}
+  const candidates=[];for(const x of stats.values()){x.uniqueSenders=x.senders.size;x.balance=x.received+x.rewards+x.fees-x.sent;x.retention=x.received>0?x.balance/x.received:0;if(x.uniqueSenders<minSenders||x.incoming<minIncoming||x.received<minReceived||x.balance<minBalance)continue;if(excludePools&&state.poolAddresses.has(x.address))continue;const rr=Math.max(-1,Math.min(1,x.retention));x.score=x.uniqueSenders*5+Math.log10(x.incoming+1)*10+Math.log10(x.received+1)*8+rr*10;candidates.push(x);}
+  candidates.sort((a,b)=>b.score-a.score||b.uniqueSenders-a.uniqueSenders||b.received-a.received);state.mainWallets.clear();for(const x of candidates.slice(0,maxResults))state.mainWallets.set(x.address,x);renderMainWallets([...state.mainWallets.values()]);$('mainSummary').textContent=`Found ${fmt(candidates.length)} matching addresses; showing the top ${fmt(Math.min(candidates.length,maxResults))}.`;if(state.network&&$('mainHighlight').checked)draw();
+}
+function renderMainWallets(rows){const body=$('mainRows');body.innerHTML='';for(const x of rows){const tr=document.createElement('tr'),retention=Number.isFinite(x.retention)?(x.retention*100).toFixed(1)+'%':'—';tr.innerHTML=`<td class="address" data-a="${x.address}">${x.address}</td><td>${x.score.toFixed(1)}</td><td>${fmt(x.uniqueSenders)}</td><td>${fmt(x.incoming)}</td><td>${fmt(x.received)}</td><td>${fmt(x.sent)}</td><td>${fmt(x.balance)}</td><td>${retention}</td><td>${x.first??'—'}</td><td>${x.last??'—'}</td>`;body.appendChild(tr);}body.querySelectorAll('.address').forEach(td=>td.onclick=()=>{$('address').value=td.dataset.a;$('balanceAddress').value=td.dataset.a;draw();$('network').scrollIntoView({behavior:'smooth',block:'center'});});}
+function analyzeOwnedFeeders(target){
+  const body=$('ownedRows');if(!state.rows.length){body.innerHTML='';$('ownedSummary').textContent='Load ledger JSON first.';state.ownedFeeders.clear();state.currentOwnedTarget='';return [];}
+  target=(target||$('address').value.trim()).trim();if(!target||target==='COINBASE'){body.innerHTML='';$('ownedSummary').textContent='Select a normal wallet address to inspect potential owned feeder addresses.';state.ownedFeeders.clear();state.currentOwnedTarget=target;return [];}
+  const minPct=Math.max(0,Math.min(100,+$('ownedMinPct').value||0))/100,minAmount=Math.max(0,+$('ownedMinAmount').value||0),minTransfers=Math.max(1,+$('ownedMinTransfers').value||1),maxRecipients=Math.max(1,+$('ownedMaxRecipients').value||1),maxResults=Math.min(500,Math.max(5,+$('ownedMaxResults').value||75)),excludePools=$('ownedExcludePools').checked;
+  const feederStats=new Map();for(const idx of (state.inc.get(target)||[])){const r=state.rows[idx];if(r.type!=='ORDER_TRANSFER'||!r.from||r.from==='COINBASE')continue;let x=feederStats.get(r.from);if(!x){x={address:r.from,toTargetAmount:0,toTargetCount:0,first:r.block,last:r.block};feederStats.set(r.from,x);}x.toTargetAmount+=r.amount;x.toTargetCount++;x.first=Math.min(x.first,r.block);x.last=Math.max(x.last,r.block);}
+  const candidates=[];for(const x of feederStats.values()){if(excludePools&&state.poolAddresses.has(x.address))continue;let totalOutgoing=0,totalOutgoingCount=0;const recipients=new Set();for(const idx of (state.out.get(x.address)||[])){const r=state.rows[idx];if(r.type!=='ORDER_TRANSFER')continue;totalOutgoing+=r.amount;totalOutgoingCount++;if(r.to)recipients.add(r.to);}x.totalOutgoing=totalOutgoing;x.totalOutgoingCount=totalOutgoingCount;x.uniqueRecipients=recipients.size;x.shareToTarget=totalOutgoing>0?x.toTargetAmount/totalOutgoing:0;if(x.shareToTarget<minPct||x.toTargetAmount<minAmount||x.toTargetCount<minTransfers||x.uniqueRecipients>maxRecipients)continue;const bal=calculateBalance(x.address,state.maxBlock);x.balance=bal&&bal.balance!==null?bal.balance:0;const bonus=x.uniqueRecipients===1?20:x.uniqueRecipients===2?12:x.uniqueRecipients===3?6:0;x.score=x.shareToTarget*60+Math.log10(x.toTargetCount+1)*10+Math.log10(x.toTargetAmount+1)*8+bonus;candidates.push(x);}
+  candidates.sort((a,b)=>b.score-a.score||b.shareToTarget-a.shareToTarget||b.toTargetAmount-a.toTargetAmount);state.ownedFeeders.clear();for(const x of candidates.slice(0,maxResults))state.ownedFeeders.set(x.address,x);state.currentOwnedTarget=target;renderOwnedFeeders([...state.ownedFeeders.values()],target,candidates.length);return [...state.ownedFeeders.values()];
+}
+function renderOwnedFeeders(rows,target,totalMatches){const body=$('ownedRows');body.innerHTML='';$('ownedSummary').textContent=rows.length?`For ${target}, found ${fmt(totalMatches)} feeder candidates; showing ${fmt(rows.length)} addresses that appear to route most of their outgoing funds into this wallet.`:`For ${target}, no feeder addresses matched the current ownership thresholds.`;for(const x of rows){const tr=document.createElement('tr'),pct=(x.shareToTarget*100).toFixed(1)+'%';tr.innerHTML=`<td class="address" data-a="${x.address}">${x.address}</td><td>${x.score.toFixed(1)}</td><td>${fmt(x.toTargetAmount)}</td><td>${fmt(x.toTargetCount)}</td><td>${pct}</td><td>${fmt(x.uniqueRecipients)}</td><td>${fmt(x.totalOutgoing)}</td><td>${fmt(x.balance)}</td><td>${x.first}</td><td>${x.last}</td>`;body.appendChild(tr);}body.querySelectorAll('.address').forEach(td=>td.onclick=()=>{$('address').value=td.dataset.a;$('balanceAddress').value=td.dataset.a;draw();$('network').scrollIntoView({behavior:'smooth',block:'center'});});}
+function allowedRecord(r){return r.type==='ORDER_TRANSFER'||($('includeOrigins').checked&&['BLOCK_REWARD','BLOCK_FEES','MASTERNODE_REWARD','POS_REWARD'].includes(r.type));}
+function collectGraph(root){const direction=$('direction').value,depth=+$('depth').value,min=+$('minAmount').value||0,max=+$('maxEdges').value||300,q=[{a:root,d:0}],seenAddr=new Set([root]),picked=new Set();while(q.length&&picked.size<max){const {a,d}=q.shift();if(d>=depth)continue;let indexes=[];if(direction==='outgoing')indexes=state.out.get(a)||[];else if(direction==='incoming'||direction==='backward')indexes=state.inc.get(a)||[];else indexes=[...(state.out.get(a)||[]),...(state.inc.get(a)||[])];indexes.sort((x,y)=>state.rows[y].amount-state.rows[x].amount);for(const idx of indexes){const r=state.rows[idx];if(!allowedRecord(r)||r.amount<min)continue;picked.add(idx);if(picked.size>=max)break;let next=[];if(direction==='backward'||direction==='incoming')next=[r.from];else if(direction==='outgoing')next=[r.to];else next=[r.from===a?r.to:r.from];for(const n of next){if(n&&!seenAddr.has(n)){seenAddr.add(n);q.push({a:n,d:d+1});}}}}return [...picked].map(i=>state.rows[i]);}
+function aggregate(records){const m=new Map();for(const r of records){const key=r.from+'\u0000'+r.to;let a=m.get(key);if(!a){a={from:r.from,to:r.to,amount:0,count:0,first:r.block,last:r.block,refs:new Set(),types:new Set()};m.set(key,a);}a.amount+=r.amount;a.count++;a.first=Math.min(a.first,r.block);a.last=Math.max(a.last,r.block);if(r.ref)a.refs.add(r.ref);a.types.add(r.type);}return [...m.values()].sort((a,b)=>b.amount-a.amount);}
+function drawOwnedCluster(){
+  const root=$('address').value.trim();if(!state.rows.length){setStatus('Load the ledger JSON first.','bad');return;}if(!root||root==='COINBASE'){setStatus('Select a normal wallet address first.','bad');return;}const feeders=analyzeOwnedFeeders(root);if(!feeders.length){setStatus('No feeder addresses match the current ownership thresholds. Try lowering the percentage or increasing maximum recipients.','bad');return;}$('balanceAddress').value=root;updateBalance();
+  const ids=new Set([root]),edges=[];for(const f of feeders){ids.add(f.address);edges.push({from:f.address,to:root,amount:f.toTargetAmount,count:f.toTargetCount,first:f.first,last:f.last,share:f.shareToTarget,score:f.score});}
+  const nodes=[...ids].map(id=>{if(id===root){const main=state.mainWallets.get(id);return {id,label:`MAIN WALLET\n${id.slice(0,7)}…${id.slice(-5)}`,title:`${id}\nActive main-wallet view${main?`\nCandidate score: ${main.score.toFixed(1)}`:''}`,shape:'star',size:34,color:{background:'#fbe04d',border:'#fff'},font:{color:'#fff',size:16}};}const f=state.ownedFeeders.get(id);return {id,label:`FEEDER ${(f.shareToTarget*100).toFixed(0)}%\n${id.slice(0,7)}…${id.slice(-5)}`,title:`${id}\nPotential owned feeder score: ${f.score.toFixed(1)}\nSent to main wallet: ${fmt(f.toTargetAmount)} NOSO\nTransfers: ${fmt(f.toTargetCount)}\nShare of all outgoing to main wallet: ${(f.shareToTarget*100).toFixed(1)}%\nUnique recipients: ${fmt(f.uniqueRecipients)}`,shape:'triangle',size:24,color:{background:'#2f7fd1',border:'#b9e2ff'},font:{color:'#eee'}};});
+  const ve=edges.map((e,i)=>({id:i,from:e.from,to:e.to,arrows:'to',width:2.8,value:Math.max(1,Math.log10(e.amount+1)),label:$('showAmounts').checked?fmt(e.amount):'',title:`Likely feeder to main wallet\n${fmt(e.amount)} NOSO in ${fmt(e.count)} transfer(s)\n${(e.share*100).toFixed(1)}% of sender outgoing\n${e.first===e.last?`Block ${e.first}`:`Blocks ${e.first}–${e.last}`}`,font:{align:'middle',color:'#b9e2ff',strokeWidth:3,strokeColor:'#111'},color:{color:'#2f7fd1',highlight:'#66b3ff',hover:'#66b3ff',inherit:false}}));
+  createNetwork(nodes,ve,{solver:'forceAtlas2Based',gravity:-70,springLength:180,iterations:300},edges,'ownedCluster');renderTable(edges.map(e=>({...e,refs:new Set(['POTENTIAL_OWNED_FEEDER'])})));setStatus(`Showing ${fmt(feeders.length)} potential feeder addresses grouped around ${root}.`,'good');$('network').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function createNetwork(nodes,ve,physicsCfg,rawEdges,mode='normal'){
+  const data={nodes:new vis.DataSet(nodes),edges:new vis.DataSet(ve)},options={physics:{solver:physicsCfg.solver,forceAtlas2Based:{gravitationalConstant:physicsCfg.gravity,springLength:physicsCfg.springLength},stabilization:{iterations:physicsCfg.iterations}},interaction:{hover:true,navigationButtons:true,keyboard:true},edges:{smooth:{type:'dynamic'},scaling:{min:1,max:8}},nodes:{borderWidth:1}};
+  stopFloating();if(state.network)state.network.destroy();state.network=new vis.Network($('network'),data,options);state.currentGraph={edges:rawEdges,mode};state.network.once('stabilizationIterationsDone',()=>{state.network.setOptions({physics:false});startFloating();});state.network.on('dragStart',()=>stopFloating());state.network.on('dragEnd',()=>{state.floatBase=state.network.getPositions();state.floatStart=performance.now();startFloating();});state.network.on('click',p=>{if(p.nodes.length){$('address').value=p.nodes[0];$('balanceAddress').value=p.nodes[0];updateBalance();}});state.network.on('doubleClick',p=>{if(p.nodes.length){$('address').value=p.nodes[0];draw();}});$('nodeCount').textContent=fmt(nodes.length);$('edgeCount').textContent=fmt(rawEdges.length);$('amountCount').textContent=fmt(rawEdges.reduce((s,e)=>s+e.amount,0));
+}
+function draw(){
+  const root=$('address').value.trim();if(!root){setStatus('Enter an address to graph.','bad');return;}if(!state.rows.length){setStatus('Load the ledger JSON first.','bad');return;}$('balanceAddress').value=root;updateBalance();analyzeOwnedFeeders(root);const recs=collectGraph(root),edges=aggregate(recs),ids=new Set([root]);edges.forEach(e=>{ids.add(e.from);ids.add(e.to)});
+  const nodes=[...ids].map(id=>{const pool=state.poolAddresses.get(id),poolName=pool?[...pool.names.entries()].sort((a,b)=>b[1]-a[1])[0][0]:'',short=id==='COINBASE'?'COINBASE':id.slice(0,7)+'…'+id.slice(-5),label=pool?`${poolName}\n${short}`:short,main=$('mainHighlight').checked?state.mainWallets.get(id):null,feeder=$('ownedHighlight').checked&&state.currentOwnedTarget===root?state.ownedFeeders.get(id):null;
+    const mainInfo=main?`\nMain-wallet candidate score: ${main.score.toFixed(1)}\nUnique senders: ${fmt(main.uniqueSenders)}\nIncoming transfers: ${fmt(main.incoming)}\nTotal received: ${fmt(main.received)} NOSO\nLedger balance: ${fmt(main.balance)} NOSO`:'',feederInfo=feeder?`\nPotential owned feeder score: ${feeder.score.toFixed(1)}\nSent to active wallet: ${fmt(feeder.toTargetAmount)} NOSO\nTransfers to active wallet: ${fmt(feeder.toTargetCount)}\nShare of outgoing to active wallet: ${(feeder.shareToTarget*100).toFixed(1)}%\nUnique recipients: ${fmt(feeder.uniqueRecipients)}`:'';
+    const title=(pool?`${id}\nDetected pool address: ${poolName}\nPool-payment transfers: ${fmt(pool.count)}\nPool-payment amount: ${fmt(pool.amount)} NOSO`:id)+mainInfo+feederInfo,shape=id==='COINBASE'?'diamond':id===root?'star':pool?'hexagon':feeder?'triangle':main?'square':'dot',size=id==='COINBASE'?28:id===root?28:pool?23:feeder?21:main?22:16,color=id==='COINBASE'?{background:'#86d993',border:'#fff'}:id===root?{background:'#fbe04d',border:'#fff'}:pool?{background:'#e69f3a',border:'#fff'}:feeder?{background:'#2f7fd1',border:'#b9e2ff'}:main?{background:'#7047a8',border:'#d7b8ff'}:undefined;return {id,label,title,shape,size,color,font:{color:'#eee'}};});
+  const ve=edges.map((e,i)=>{const isOutgoing=e.from===root,isIncoming=e.to===root,edgeColor=isOutgoing?'#f08a8a':isIncoming?'#86d993':'#777',edgeWidth=isOutgoing||isIncoming?2.2:1.2,edgeRole=isOutgoing?'Outgoing from active address':isIncoming?'Incoming to active address':'Indirect relationship',blockLabel=e.first===e.last?`Block ${e.first}`:`Blocks ${e.first}–${e.last}`,edgeLabel=$('showAmounts').checked?fmt(e.amount):'';return {id:i,from:e.from,to:e.to,arrows:'to',value:Math.max(1,Math.log10(e.amount+1)),width:edgeWidth,label:edgeLabel,title:`${edgeRole}\n${fmt(e.amount)} NOSO in ${e.count} transfer(s)\n${blockLabel}`,font:{align:'middle',color:'#bbb',strokeWidth:3,strokeColor:'#111'},color:{color:edgeColor,highlight:edgeColor,hover:edgeColor,inherit:false}};});
+  createNetwork(nodes,ve,{solver:'forceAtlas2Based',gravity:-55,springLength:130,iterations:250},edges);renderTable(edges);
+}
+function renderTable(edges){const body=$('edgeRows');body.innerHTML='';for(const e of edges){const tr=document.createElement('tr'),refs=[...e.refs].slice(0,4).join(', ')+(e.refs.size>4?'…':'');tr.innerHTML=`<td class="address" data-a="${e.from}">${e.from}</td><td class="address" data-a="${e.to}">${e.to}</td><td>${fmt(e.amount)}</td><td>${fmt(e.count)}</td><td>${e.first}</td><td>${e.last}</td><td title="${refs.replace(/"/g,'&quot;')}">${refs}</td>`;body.appendChild(tr);}body.querySelectorAll('.address').forEach(td=>td.onclick=()=>{$('address').value=td.dataset.a;draw();});}
+$('loadBtn').onclick=loadJsonData;$('drawBtn').onclick=draw;$('balanceBtn').onclick=updateBalance;$('mainScanBtn').onclick=scanMainWallets;$('ownedAnalyzeBtn').onclick=()=>{if(state.rows.length){analyzeOwnedFeeders($('address').value.trim());if($('ownedHighlight').checked)draw();}};$('ownedClusterBtn').onclick=drawOwnedCluster;$('mainExcludePools').onchange=()=>{if(state.rows.length)scanMainWallets();};$('mainHighlight').onchange=()=>{if(state.rows.length)draw();};$('ownedExcludePools').onchange=()=>{if(state.rows.length)analyzeOwnedFeeders($('address').value.trim());};$('ownedHighlight').onchange=()=>{if(state.rows.length)draw();};$('showAmounts').onchange=()=>{if(state.rows.length)draw();};$('address').addEventListener('keydown',e=>{if(e.key==='Enter')draw();});$('balanceAddress').addEventListener('keydown',e=>{if(e.key==='Enter')updateBalance();});$('balanceBlock').addEventListener('keydown',e=>{if(e.key==='Enter')updateBalance();});
+window.addEventListener('DOMContentLoaded',loadJsonData);
+</script>
+</body>
+</html>
