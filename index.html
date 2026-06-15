@@ -324,7 +324,7 @@
         <button class="nav-link" data-tab-nav="address" onclick="showTab('address')"><span>◇ Address Lookup</span></button>
         <button class="nav-link" data-tab-nav="wallet" onclick="showTab('wallet')"><span>▣ Pseudo Wallet Calculator</span></button>
         <button class="nav-link" data-tab-nav="gvt" onclick="showTab('gvt')"><span>⚖ GVT Addresses</span><span class="badge">100</span></button>
-        <button class="nav-link" data-tab-nav="exchange" onclick="showTab('exchange')"><span>⇆ Exchange Addresses</span><span class="badge">8</span></button>
+        <button class="nav-link" data-tab-nav="exchange" onclick="showTab('exchange')"><span>⇆ Exchange Addresses</span><span class="badge">3</span></button>
       </nav>
 
       <div class="socials" aria-label="Noso links">
@@ -401,7 +401,7 @@
                   <tr><td>Address lookup</td><td>Calls <span class="mono">getaddressbalance</span> and preserves the current balance / incoming / outgoing logic from your existing page.</td></tr>
                   <tr><td>Pseudo wallet</td><td>Paste multiple Noso addresses to total them together as a read-only wallet view. Each address is queried individually with <span class="mono">getaddressbalance</span>.</td></tr>
                   <tr><td>Governance lookup</td><td>Searches the fixed list of 100 current GVT governance slots and can also load a selected address balance.</td></tr>
-                  <tr><td>Exchange addresses</td><td>Tags the three known exchange deposit/collection addresses in address lookup, block orders, and pseudo wallet results. SevenSeas, Txbit, Biconomy, Finexbox, and DogCash Wallet are also listed as historical exchange/wallet references where a shared NosoV1 address is unknown.</td></tr>
+                  <tr><td>Exchange addresses</td><td>Tags known exchange deposit/collection addresses in address lookup, block orders, and pseudo wallet results: XeggeX, NonKYC, and Azbit.</td></tr>
                 </tbody>
               </table>
 
@@ -413,17 +413,23 @@
                     <tr><td>XeggeX</td><td><a class="mono" href="#" onclick="loadAddress('N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF'); return false;">N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF</a></td></tr>
                     <tr><td>NonKYC</td><td><a class="mono" href="#" onclick="loadAddress('N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH'); return false;">N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH</a></td></tr>
                     <tr><td>Azbit</td><td><a class="mono" href="#" onclick="loadAddress('N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh'); return false;">N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh</a></td></tr>
-                    <tr><td>SevenSeas</td><td>Address unknown / exchange shutdown</td></tr>
-                    <tr><td>Txbit</td><td>Address unknown / exchange shutdown</td></tr>
-                    <tr><td>Biconomy</td><td>Address unknown / delisted Noso pre-stoppage</td></tr>
-                    <tr><td>Finexbox</td><td>Unique address per user / unknown</td></tr>
-                    <tr><td>DogCash Wallet</td><td>Address unknown</td></tr>
                   </tbody>
                 </table>
                 <div class="quick-actions">
                   <button class="btn" type="button" onclick="showTab('exchange')">Open Exchange Address List</button>
                   <button class="btn secondary" type="button" onclick="loadExchangePseudoWallet()">Total These 3 Addresses</button>
                 </div>
+              </div>
+
+              <div class="home-wallet-callout">
+                <h3>Protocol Addresses and Historical Use</h3>
+                <table class="kv-table">
+                  <tbody>
+                    <tr><td>Random Jackpot</td><td><a class="mono" href="#" onclick="loadAddress('NPrjectPrtcRandmJacptE5'); return false;">NPrjectPrtcRandmJacptE5</a> — hardcoded protocol address created during the PoPW/PoP era. Pools sent miner balances inactive for 1008 blocks (24 hours) to this address. Its remaining balance was used to operate project nodes.</td></tr>
+                    <tr><td>Project Development Funds</td><td><a class="mono" href="#" onclick="loadAddress('NpryectdevepmentfundsGE'); return false;">NpryectdevepmentfundsGE</a> — hardcoded protocol address. Beginning at block 88399, 10% of each block reward was allocated to this address.</td></tr>
+                    <tr><td>Protocol authority</td><td>Protocol-related commands can only be performed from NosoNode wallets containing the <span class="mono">erasmus</span> keys.</td></tr>
+                  </tbody>
+                </table>
               </div>
 
               <div class="home-wallet-callout">
@@ -507,7 +513,7 @@
 
             <div id="exchange" class="result-section">
               <div class="notice">
-                The first three entries are known NosoV1 exchange addresses and can be looked up or loaded into the Pseudo Wallet Calculator. The remaining entries are historical exchange/wallet references whose common NosoV1 address is unknown.
+                These are labeled V1 exchange addresses. Use this section to look up any single exchange address or load all three into the Pseudo Wallet Calculator.
               </div>
               <div style="height:14px"></div>
               <table class="kv-table exchange-table">
@@ -549,8 +555,7 @@
                 <tr><td>PoPW implementation</td><td>Approximately block 82812</td></tr>
                                 <tr><td>PoP transition</td><td>Approximately block 105262</td></tr>
                 <tr><td>Masternode-only rewards</td><td>Approximately block 108862</td></tr>
-                <tr><td>Known exchange addresses</td><td>XeggeX, NonKYC, Azbit</td></tr>
-                <tr><td>Other historical exchanges / wallets</td><td>SevenSeas, Txbit, Biconomy, Finexbox, DogCash Wallet</td></tr>
+                <tr><td>Known exchanges</td><td>XeggeX, NonKYC, Azbit</td></tr>
               </tbody>
             </table>
             <div style="height:14px"></div>
@@ -600,6 +605,26 @@ const EXCHANGE_ADDRESSES = [
   ['NonKYC', 'N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH'],
   ['Azbit', 'N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh']
 ];
+
+const SPECIAL_ADDRESSES = {
+  'n4pejyqj8disxnfhxsqdlpo8ddxtagd': {
+    label: 'erasmus / Genesis Miner',
+    type: 'Genesis Address',
+    description: 'First Noso address/keypair and miner of the Genesis block.'
+  },
+  'nprjectprtcrandmjacpte5': {
+    label: 'Protocol Random Jackpot Address',
+    type: 'Hardcoded Protocol Address',
+    description: 'Created during the PoPW/PoP era. Pools sent miner balances inactive for 1008 blocks (24 hours) to this address. Its remaining balance was used to operate project nodes.'
+  },
+  'npryectdevepmentfundsge': {
+    label: 'Project Development Funds Address',
+    type: 'Hardcoded Protocol Address',
+    description: 'Beginning at block 88399, 10% of each block reward was allocated to this address.'
+  }
+};
+
+const COINBASE_EXPLANATION = 'The Coinbase address is the protocol-controlled mint source used to create and distribute block rewards. It is not a conventional user wallet.';
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -679,7 +704,7 @@ function showTab(tab) {
     address: ['Address Lookup', 'Lookup a NosoV1 address balance.'],
     wallet: ['Pseudo Wallet', 'Total multiple NosoV1 addresses into one read-only wallet view.'],
     gvt: ['Governance Addresses', 'Browse and search the 100 current GVT governance address slots.'],
-    exchange: ['Exchange Addresses', 'Known V1 exchange addresses plus historical exchange/wallet references with unknown addresses.']
+    exchange: ['Exchange Addresses', 'Known V1 exchange addresses for XeggeX, NonKYC, and Azbit.']
   };
   document.getElementById('resultTitle').textContent = titles[tab]?.[0] || 'Explorer';
   document.getElementById('resultSubtitle').textContent = titles[tab]?.[1] || '';
@@ -926,6 +951,9 @@ function gvtSlotListForAddress(address) {
 function exchangeNameForAddress(address) {
   const found = EXCHANGE_ADDRESSES.find(x => x[1].toLowerCase() === String(address || '').toLowerCase());
   return found ? found[0] : '';
+}
+function specialAddressInfo(address) {
+  return SPECIAL_ADDRESSES[String(address || '').trim().toLowerCase()] || null;
 }
 function addressTagsHtml(address) {
   const tags = [];
