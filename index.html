@@ -576,7 +576,7 @@
                 <tr><td>Final block window</td><td>9/14/2024, 5:20:01 PM – 5:30:00 PM</td></tr>
                 <tr><td>Genesis miner / first keypair</td><td><a class="mono" href="#" onclick="loadAddress('N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd'); return false;">N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd</a> — alias <span class="mono">erasmus</span></td></tr>
 
-                <tr><td>Pure PoW era</td><td>Block 0 through block 83339</td></tr>
+                <tr><td>Pure PoW era</td><td>Block 0 through block 83340</td></tr>
                 <tr><td>PoPW era</td><td>Block 83340 through approximately block 105261</td></tr>
                 <tr><td>PoP era</td><td>Approximately block 105262 through block 108861</td></tr>
                 <tr><td>Project random jackpot</td><td><a class="mono" href="#" onclick="loadAddress('NPrjectPrtcRandmJacptE5'); return false;">NPrjectPrtcRandmJacptE5</a> received pool balances inactive for 1008 blocks during the PoPW/PoP era; the remaining balance supported project nodes.</td></tr>
@@ -1157,6 +1157,23 @@ async function loadPseudoWallet(addressesOverride = null) {
     resultBox.innerHTML = `<div class="notice error"><strong>Balance lookups completed, but the results could not be rendered.</strong><br>${esc(error.message || String(error))}</div>`;
     console.error('Pseudo wallet render error:', error, results);
   }
+}
+
+function loadGvtPseudoWallet() {
+  const seen = new Set();
+  const addresses = GVT_ADDRESSES
+    .map(([, address]) => String(address || '').trim())
+    .filter(address => {
+      if (!address) return false;
+      const key = address.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+  document.getElementById('walletInput').value = addresses.join('\n');
+  showTab('wallet');
+  loadPseudoWallet(addresses);
 }
 
 function loadExchangePseudoWallet() {
