@@ -324,7 +324,7 @@
         <button class="nav-link" data-tab-nav="address" onclick="showTab('address')"><span>◇ Address Lookup</span></button>
         <button class="nav-link" data-tab-nav="wallet" onclick="showTab('wallet')"><span>▣ Pseudo Wallet Calculator</span></button>
         <button class="nav-link" data-tab-nav="gvt" onclick="showTab('gvt')"><span>⚖ GVT Addresses</span><span class="badge">100</span></button>
-        <button class="nav-link" data-tab-nav="exchange" onclick="showTab('exchange')"><span>⇆ Exchange Addresses</span><span class="badge">3</span></button>
+        <button class="nav-link" data-tab-nav="exchange" onclick="showTab('exchange')"><span>⇆ Exchange Addresses</span><span class="badge">8</span></button>
       </nav>
 
       <div class="socials" aria-label="Noso links">
@@ -346,8 +346,10 @@
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-label">Final V1 Block</div><div class="stat-value accent">180031</div></div>
           <div class="stat-card"><div class="stat-label">Final Supply</div><div class="stat-value accent">9,001,550 NOSO</div></div>
-          <div class="stat-card"><div class="stat-label">Final Block Start</div><div class="stat-value">9/14/2024 5:20:01 PM</div></div>
+          <div class="stat-card"><div class="stat-label">Genesis Block 0</div><div class="stat-value">7/18/2018 1:53:03 AM</div></div>
           <div class="stat-card"><div class="stat-label">Final Block End</div><div class="stat-value">9/14/2024 5:30:00 PM</div></div>
+          <div class="stat-card"><div class="stat-label">Block Time</div><div class="stat-value">600 Seconds</div></div>
+          <div class="stat-card"><div class="stat-label">Total Supply</div><div class="stat-value">21,000,000 NOSO</div></div>
           <div class="stat-card"><div class="stat-label">Governance Slots</div><div class="stat-value">100</div></div>
           <div class="stat-card"><div class="stat-label">Exchange Addresses</div><div class="stat-value">3</div></div>
         </div>
@@ -364,6 +366,7 @@
           <button class="btn secondary" onclick="showTab('gvt')">Browse GVT Slots</button>
           <button class="btn secondary" onclick="showTab('exchange')">View Exchange Addresses</button>
           <button class="btn secondary" onclick="loadExchangePseudoWallet()">Total Exchange Addresses</button>
+          <button class="btn secondary" onclick="loadProjectPseudoWallet()">Total Project Addresses</button>
         </div>
       </section>
 
@@ -401,7 +404,7 @@
                   <tr><td>Address lookup</td><td>Calls <span class="mono">getaddressbalance</span> and preserves the current balance / incoming / outgoing logic from your existing page.</td></tr>
                   <tr><td>Pseudo wallet</td><td>Paste multiple Noso addresses to total them together as a read-only wallet view. Each address is queried individually with <span class="mono">getaddressbalance</span>.</td></tr>
                   <tr><td>Governance lookup</td><td>Searches the fixed list of 100 current GVT governance slots and can also load a selected address balance.</td></tr>
-                  <tr><td>Exchange addresses</td><td>Tags known exchange deposit/collection addresses in address lookup, block orders, and pseudo wallet results: XeggeX, NonKYC, and Azbit.</td></tr>
+                  <tr><td>Exchange addresses</td><td>Tags the three known exchange deposit/collection addresses in address lookup, block orders, and pseudo wallet results. SevenSeas, Txbit, Biconomy, Finexbox, and DogCash Wallet are also listed as historical exchange/wallet references where a shared NosoV1 address is unknown.</td></tr>
                 </tbody>
               </table>
 
@@ -413,6 +416,11 @@
                     <tr><td>XeggeX</td><td><a class="mono" href="#" onclick="loadAddress('N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF'); return false;">N3VCAvZyhnoFabFTfeWvY7WYoXQQ8FF</a></td></tr>
                     <tr><td>NonKYC</td><td><a class="mono" href="#" onclick="loadAddress('N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH'); return false;">N2ECg31WcrbQkDdK4RKNkv1T3ebBfCH</a></td></tr>
                     <tr><td>Azbit</td><td><a class="mono" href="#" onclick="loadAddress('N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh'); return false;">N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh</a></td></tr>
+                    <tr><td>SevenSeas</td><td>Address unknown / exchange shutdown</td></tr>
+                    <tr><td>Txbit</td><td>Address unknown / exchange shutdown</td></tr>
+                    <tr><td>Biconomy</td><td>Address unknown / delisted Noso pre-stoppage</td></tr>
+                    <tr><td>Finexbox</td><td>Unique address per user / unknown</td></tr>
+                    <tr><td>DogCash Wallet</td><td>Address unknown</td></tr>
                   </tbody>
                 </table>
                 <div class="quick-actions">
@@ -422,14 +430,31 @@
               </div>
 
               <div class="home-wallet-callout">
-                <h3>Protocol Addresses and Historical Use</h3>
+                <h3>Historical Chain Notes</h3>
                 <table class="kv-table">
                   <tbody>
-                    <tr><td>Random Jackpot</td><td><a class="mono" href="#" onclick="loadAddress('NPrjectPrtcRandmJacptE5'); return false;">NPrjectPrtcRandmJacptE5</a> — hardcoded protocol address created during the PoPW/PoP era. Pools sent miner balances inactive for 1008 blocks (24 hours) to this address. Its remaining balance was used to operate project nodes.</td></tr>
-                    <tr><td>Project Development Funds</td><td><a class="mono" href="#" onclick="loadAddress('NpryectdevepmentfundsGE'); return false;">NpryectdevepmentfundsGE</a> — hardcoded protocol address. Beginning at block 88399, 10% of each block reward was allocated to this address.</td></tr>
-                    <tr><td>Protocol authority</td><td>Protocol-related commands can only be performed from NosoNode wallets containing the <span class="mono">erasmus</span> keys.</td></tr>
+                    <tr><td>Genesis miner / first keypair</td><td><a class="mono" href="#" onclick="loadAddress('N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd'); return false;">N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd</a> — alias <span class="mono">erasmus</span></td></tr>
+                    <tr><td>Original masternode model</td><td>10% of the block reward shared evenly; stake initially 0.15% of circulating supply and later 0.20%.</td></tr>
+                    <tr><td>Later masternode model</td><td>Stake capped at 10,500 NOSO. After PoS ended at block 88399, the masternode share began at 40%, rising 1% every 4,000 blocks to a 60% maximum.</td></tr>
+                    <tr><td>Project funds</td><td>Beginning at block 88399, 10% of each block reward was allocated to <a class="mono" href="#" onclick="loadAddress('NpryectdevepmentfundsGE'); return false;">NpryectdevepmentfundsGE</a>.</td></tr>
+                    <tr><td>Random jackpot address</td><td><a class="mono" href="#" onclick="loadAddress('NPrjectPrtcRandmJacptE5'); return false;">NPrjectPrtcRandmJacptE5</a> received PoPW/PoP pool balances that remained inactive for 1008 blocks. Its remaining balance was used to operate project nodes.</td></tr>
+                    <tr><td>Protocol authority</td><td>Protocol-related commands could only be performed from NosoNode wallets containing the <span class="mono">erasmus</span> keys.</td></tr>
+                    <tr><td>Project-run masternodes</td><td>Known project-controlled masternode addresses are labeled throughout address, order, masternode, and pseudo-wallet results.</td></tr>
                   </tbody>
                 </table>
+              </div>
+
+              <div class="home-wallet-callout">
+                <h3>Known Project Addresses</h3>
+                <p>This group includes the hardcoded project funds and jackpot addresses plus the known project-run masternode addresses.</p>
+                <table class="kv-table"><tbody>
+                  <tr><td>Project development funds</td><td><a class="mono" href="#" onclick="loadAddress('NpryectdevepmentfundsGE'); return false;">NpryectdevepmentfundsGE</a></td></tr>
+                  <tr><td>Project random jackpot</td><td><a class="mono" href="#" onclick="loadAddress('NPrjectPrtcRandmJacptE5'); return false;">NPrjectPrtcRandmJacptE5</a></td></tr>
+                  <tr><td>Project-run masternodes</td><td>20 known addresses</td></tr>
+                </tbody></table>
+                <div class="quick-actions">
+                  <button class="btn" type="button" onclick="loadProjectPseudoWallet()">Calculate All Project Addresses</button>
+                </div>
               </div>
 
               <div class="home-wallet-callout">
@@ -495,6 +520,7 @@
                 <button class="btn" type="button" onclick="loadPseudoWallet()">Calculate Pseudo Wallet</button>
                 <button class="btn secondary" type="button" onclick="loadGvtPseudoWallet()">Load Unique GVT Addresses</button>
                 <button class="btn secondary" type="button" onclick="loadExchangePseudoWallet()">Load Exchange Addresses</button>
+                <button class="btn secondary" type="button" onclick="loadProjectPseudoWallet()">Load Project Nodes + Funds/Jackpot</button>
                 <button class="btn secondary" type="button" onclick="clearPseudoWallet()">Clear</button>
               </div>
               <div style="height:14px"></div>
@@ -513,7 +539,7 @@
 
             <div id="exchange" class="result-section">
               <div class="notice">
-                These are labeled V1 exchange addresses. Use this section to look up any single exchange address or load all three into the Pseudo Wallet Calculator.
+                The first three entries are known NosoV1 exchange addresses and can be looked up or loaded into the Pseudo Wallet Calculator. The remaining entries are historical exchange/wallet references whose common NosoV1 address is unknown.
               </div>
               <div style="height:14px"></div>
               <table class="kv-table exchange-table">
@@ -548,14 +574,26 @@
                 <tr><td>Pedro conversion</td><td>1 NOSO = 100,000,000 Pedro</td></tr>
                 <tr><td>Final V1 range</td><td>Block 0 through block 180031</td></tr>
                 <tr><td>Final block window</td><td>9/14/2024, 5:20:01 PM – 5:30:00 PM</td></tr>
+                <tr><td>Genesis miner / first keypair</td><td><a class="mono" href="#" onclick="loadAddress('N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd'); return false;">N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd</a> — alias <span class="mono">erasmus</span></td></tr>
                 <tr><td>Masternode era</td><td>Block 48010 through block 180031</td></tr>
+                <tr><td>Original masternode reward</td><td>10% of each block reward, distributed evenly among participating masternodes.</td></tr>
+                <tr><td>Original masternode stake</td><td>0.15% of circulating supply, with the required stake increasing 5% at each halving.</td></tr>
+                <tr><td>Later masternode stake</td><td>Raised to 0.20% of circulating supply.</td></tr>
+                <tr><td>Masternode stake cap</td><td>Later capped at 10,500 NOSO after the percentage-based requirement grew above that amount; the node also had to be actively participating on mainnet.</td></tr>
                 <tr><td>PoS era</td><td>Block 8425 through block 88399</td></tr>
                 <tr><td>PoS distribution</td><td>Automatically distributed to wallets holding at least 0.20% of the circulating supply in the current block.</td></tr>
+                <tr><td>Post-PoS masternode reward</td><td>Following PoS removal after block 88399, masternodes received 40% of each block reward, increasing 1% every 4,000 blocks until reaching 60%.</td></tr>
+                <tr><td>Project funds allocation</td><td>Beginning at block 88399, 10% of each block reward was allocated to <a class="mono" href="#" onclick="loadAddress('NpryectdevepmentfundsGE'); return false;">NpryectdevepmentfundsGE</a>.</td></tr>
+                <tr><td>Project random jackpot</td><td><a class="mono" href="#" onclick="loadAddress('NPrjectPrtcRandmJacptE5'); return false;">NPrjectPrtcRandmJacptE5</a> received pool balances inactive for 1008 blocks during the PoPW/PoP era; the remaining balance supported project nodes.</td></tr>
+                <tr><td>Protocol addresses</td><td><span class="mono">NPrjectPrtcRandmJacptE5</span> and <span class="mono">NpryectdevepmentfundsGE</span> are hardcoded protocol addresses.</td></tr>
+                <tr><td>Protocol command authority</td><td>Required a NosoNode wallet containing the <span class="mono">erasmus</span> keys.</td></tr>
+                <tr><td>Project address calculator</td><td><a href="#" onclick="loadProjectPseudoWallet(); return false;">Total project-run nodes, project funds, and jackpot addresses</a></td></tr>
                 <tr><td>Last pure PoW block</td><td>Block 88405</td></tr>
                 <tr><td>PoPW implementation</td><td>Approximately block 82812</td></tr>
-                                <tr><td>PoP transition</td><td>Approximately block 105262</td></tr>
+                <tr><td>PoP transition</td><td>Approximately block 105262</td></tr>
                 <tr><td>Masternode-only rewards</td><td>Approximately block 108862</td></tr>
-                <tr><td>Known exchanges</td><td>XeggeX, NonKYC, Azbit</td></tr>
+                <tr><td>Known exchange addresses</td><td>XeggeX, NonKYC, Azbit</td></tr>
+                <tr><td>Other historical exchanges / wallets</td><td>SevenSeas, Txbit, Biconomy, Finexbox, DogCash Wallet</td></tr>
               </tbody>
             </table>
             <div style="height:14px"></div>
@@ -606,25 +644,64 @@ const EXCHANGE_ADDRESSES = [
   ['Azbit', 'N2Xh9dUcsdarJXgx7Q1jusVn8MpLUFh']
 ];
 
-const SPECIAL_ADDRESSES = {
-  'n4pejyqj8disxnfhxsqdlpo8ddxtagd': {
-    label: 'erasmus / Genesis Miner',
-    type: 'Genesis Address',
-    description: 'First Noso address/keypair and miner of the Genesis block.'
-  },
-  'nprjectprtcrandmjacpte5': {
-    label: 'Protocol Random Jackpot Address',
-    type: 'Hardcoded Protocol Address',
-    description: 'Created during the PoPW/PoP era. Pools sent miner balances inactive for 1008 blocks (24 hours) to this address. Its remaining balance was used to operate project nodes.'
-  },
-  'npryectdevepmentfundsge': {
-    label: 'Project Development Funds Address',
-    type: 'Hardcoded Protocol Address',
-    description: 'Beginning at block 88399, 10% of each block reward was allocated to this address.'
-  }
-};
+const GENESIS_ADDRESS = 'N4PeJyqj8diSXnfhxSQdLpo8ddXTaGd';
+const GENESIS_ALIAS = 'erasmus';
 
-const COINBASE_EXPLANATION = 'The Coinbase address is the protocol-controlled mint source used to create and distribute block rewards. It is not a conventional user wallet.';
+const PROJECT_FUNDS_ADDRESS = 'NpryectdevepmentfundsGE';
+const PROJECT_JACKPOT_ADDRESS = 'NPrjectPrtcRandmJacptE5';
+const PROJECT_RUN_MASTERNODE_ADDRESSES = [
+  'N9mRoL21bTf2XpCnZXSuC8n1VEVjCr',
+  'N3bvz9SFwbjVY1uh3nqT6zQvMgXJSFu',
+  'N2BeshovTQStyJyH91oReU5JJfFaNEg',
+  'N4CT62UF673P1dKd9Q28SpGgh9dA89E',
+  'N3o1qPLeznkx86wJwYzChnv81NLJnFn',
+  'N2a7MhwjDLL2uiKg5YU5tGoZDJFpADB',
+  'N3sQYxtU9sCioEgpSRay7N8fJoCeF4',
+  'NevZpWkWUfnUizdALbfD2hn66CktFj',
+  'NHrtQrU1mvdf2RvmWsA1KCfsp3XmFR',
+  'NNYhLhffXQMTz7a21HXJZv4de2KvDQ',
+  'N4NPSdYW7QcMMkzg1DSBXv8KBinSNDC',
+  'N4FFf9aym6zYPLQFuvZco2mtWCqXSFT',
+  'NrAK4QJ7HCoq872zb9Varr7pZzVhDZ',
+  'N2kVCuvNP2SinSUyzMwVA6fqKmSZkG3',
+  'N3EufA5WVhm7s643mkSX5fN823RnQBu',
+  'NEzqwz2P5euMLskCynMzpUvsvDpzJT',
+  'NcgZ59jy8ZAqH2WaafVkxn3zAJzDEa',
+  'NeRfL9r1vGHQ9BfWTjGVkD7LKD1iBr',
+  'Nj5ynByFaZx97Raxkr67pkhLwB1RF2',
+  'N2sYLgRFKQeYFqE1zvUxbSmLLKVapFA'
+];
+const ALL_PROJECT_ADDRESSES = [
+  PROJECT_FUNDS_ADDRESS,
+  PROJECT_JACKPOT_ADDRESS,
+  ...PROJECT_RUN_MASTERNODE_ADDRESSES
+];
+
+function projectAddressInfo(address) {
+  const clean = String(address || '').toLowerCase();
+  if (clean === PROJECT_FUNDS_ADDRESS.toLowerCase()) {
+    return {
+      label: 'Project Development Funds',
+      type: 'Hardcoded Protocol Address',
+      note: 'Beginning at block 88399, 10% of each block reward was allocated to this address.'
+    };
+  }
+  if (clean === PROJECT_JACKPOT_ADDRESS.toLowerCase()) {
+    return {
+      label: 'Project Random Jackpot',
+      type: 'Hardcoded Protocol Address / Project-Run Masternode',
+      note: 'Created during the PoPW/PoP era. Pools sent miner balances inactive for 1008 blocks to this address. Its remaining balance was used to operate project nodes.'
+    };
+  }
+  if (PROJECT_RUN_MASTERNODE_ADDRESSES.some(x => x.toLowerCase() === clean)) {
+    return {
+      label: 'Project-Run Masternode',
+      type: 'Known Project-Controlled Masternode Address',
+      note: 'Known address used by a project-run masternode on NosoV1 mainnet.'
+    };
+  }
+  return null;
+}
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -704,7 +781,7 @@ function showTab(tab) {
     address: ['Address Lookup', 'Lookup a NosoV1 address balance.'],
     wallet: ['Pseudo Wallet', 'Total multiple NosoV1 addresses into one read-only wallet view.'],
     gvt: ['Governance Addresses', 'Browse and search the 100 current GVT governance address slots.'],
-    exchange: ['Exchange Addresses', 'Known V1 exchange addresses for XeggeX, NonKYC, and Azbit.']
+    exchange: ['Exchange Addresses', 'Known V1 exchange addresses plus historical exchange/wallet references with unknown addresses.']
   };
   document.getElementById('resultTitle').textContent = titles[tab]?.[0] || 'Explorer';
   document.getElementById('resultSubtitle').textContent = titles[tab]?.[1] || '';
@@ -882,6 +959,8 @@ async function loadAddress(value) {
     const cleanAddress = String(result.address || address);
     const gvtSlots = GVT_ADDRESSES.filter(x => x[1].toLowerCase() === cleanAddress.toLowerCase()).map(x => x[0]);
     const exchangeName = exchangeNameForAddress(cleanAddress);
+    const isGenesisAddress = cleanAddress.toLowerCase() === GENESIS_ADDRESS.toLowerCase();
+    const projectInfo = projectAddressInfo(cleanAddress);
 
     const rows = [
       ['Exists in Blockchain', result.valid ? '<span class="pill good">true</span>' : '<span class="pill">false</span>'],
@@ -893,6 +972,19 @@ async function loadAddress(value) {
     ];
     if (showOutgoingBlock && masternodeLockValue >= 10500) rows.push(['Masternode 14 Day Lock', `<span class="amount">${masternodeLockValue.toFixed(8)} NOSO</span>`]);
     if (exchangeName) rows.push(['Known Address', `<span class="pill accent">Exchange: ${esc(exchangeName)}</span>`]);
+    if (projectInfo) {
+      rows.push(['Known Address', `<span class="pill accent">${esc(projectInfo.label)}</span>`]);
+      rows.push(['Address Type', esc(projectInfo.type)]);
+      rows.push(['Project Note', esc(projectInfo.note)]);
+      if (cleanAddress.toLowerCase() === PROJECT_FUNDS_ADDRESS.toLowerCase() || cleanAddress.toLowerCase() === PROJECT_JACKPOT_ADDRESS.toLowerCase()) {
+        rows.push(['Protocol Authority', 'Protocol-related commands required a NosoNode wallet containing the erasmus keys.']);
+      }
+    }
+    if (isGenesisAddress) {
+      rows.push(['Historical Identity', `<span class="pill accent">Genesis Miner / First Keypair</span>`]);
+      rows.push(['Known Alias', `<span class="mono">${GENESIS_ALIAS}</span>`]);
+      rows.push(['Historical Note', 'First Noso address/keypair and miner of the Genesis block.']);
+    }
     if (gvtSlots.length) rows.push(['GVT Governance Slots', gvtSlots.map(slot => `<a href="#" onclick="searchGvt('${slot}'); return false;">${slot}</a>`).join(', ')]);
     document.getElementById('addressResult').innerHTML = `<table class="kv-table"><tbody>${rows.map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</tbody></table>`;
   } catch (e) { setError('addressResult', e); }
@@ -952,13 +1044,14 @@ function exchangeNameForAddress(address) {
   const found = EXCHANGE_ADDRESSES.find(x => x[1].toLowerCase() === String(address || '').toLowerCase());
   return found ? found[0] : '';
 }
-function specialAddressInfo(address) {
-  return SPECIAL_ADDRESSES[String(address || '').trim().toLowerCase()] || null;
-}
 function addressTagsHtml(address) {
   const tags = [];
+  const clean = String(address || '').toLowerCase();
   const exchange = exchangeNameForAddress(address);
   if (exchange) tags.push(`<span class="pill accent">Exchange: ${esc(exchange)}</span>`);
+  if (clean === GENESIS_ADDRESS.toLowerCase()) tags.push(`<span class="pill accent">Genesis Miner / First Keypair</span>`);
+  const projectInfo = projectAddressInfo(address);
+  if (projectInfo) tags.push(`<span class="pill accent">${esc(projectInfo.label)}</span>`);
   const slots = gvtSlotListForAddress(address);
   if (slots.length) tags.push(...slots.map(slot => `<span class="pill accent">GVT ${slot}</span>`));
   return tags.join(' ');
@@ -1063,6 +1156,13 @@ async function loadPseudoWallet(addressesOverride = null) {
 
 function loadExchangePseudoWallet() {
   const addresses = EXCHANGE_ADDRESSES.map(([, address]) => address);
+  document.getElementById('walletInput').value = addresses.join('\n');
+  showTab('wallet');
+  loadPseudoWallet(addresses);
+}
+
+function loadProjectPseudoWallet() {
+  const addresses = [...new Set(ALL_PROJECT_ADDRESSES)];
   document.getElementById('walletInput').value = addresses.join('\n');
   showTab('wallet');
   loadPseudoWallet(addresses);
